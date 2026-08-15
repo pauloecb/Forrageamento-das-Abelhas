@@ -31,10 +31,11 @@ st.markdown("Descubra o raio de alcance das abelhas nativas a partir da sua loca
 
 # Dicionário completo de espécies e raios em ordem alfabética
 especies_abelhas = {
-    "Jataí-Acriana (Tetragonisca weyrauchi)":500,
+    "Apis mellifera (Abelha com ferrão / Europa/Africana)": 2500,
     "Boiassu (Melipona interrupta)": 1500,
     "Bugia (Melipona bicolor)": 1000,
     "Canudo (Scaptotrigona depilis)": 1500,
+    "Cephalotrigona capitata (Mombucão)": 1000,
     "Guaraipo (Melipona bicolor schencki)": 1000,
     "Guiruçu (Schwarziana quadripunctata)": 1000,
     "Iraí (Nannotrigona testaceicornis)": 500,
@@ -114,55 +115,60 @@ if 'lat' not in st.session_state:
     st.session_state.lat = lat_inicial
     st.session_state.lon = lon_inicial
 
-# Atualiza se houver mudança relevante
+# Atualiza se houver mudança relevante nos inputs
 if st.session_state.lat != lat_inicial or st.session_state.lon != lon_inicial:
     st.session_state.lat = lat_inicial
     st.session_state.lon = lon_inicial
 
+st.markdown("---")
 st.markdown("### 🗺️ Mapa de Forrageamento")
 st.markdown("💡 *Toque no mapa para reposicionar o ninho.*")
 
-# Criando o mapa base
-m = folium.Map(location=[st.session_state.lat, st.session_state.lon], zoom_start=15, tiles="CartoDB positron")
+# Definindo o centro do mapa com base no session_state
+centro_mapa = [st.session_state.lat, st.session_state.lon]
 
-# Camada de satélite
+# Criando o mapa base
+m = folium.Map(location=centro_mapa, zoom_start=15, tiles="CartoDB positron")
+
+# Adicionar camada de Satélite (Esri World Imagery)
 folium.TileLayer(
     tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attr='Esri',
-    name='Visão de Satélite'
+    name='Visão de Satélite',
+    overlay=False,
+    control=True
 ).add_to(m)
 
-# Marcador que se move conforme o clique
+# Marcador do Ninho
 folium.Marker(
-    location=[st.session_state.lat, st.session_state.lon],
+    location=centro_mapa,
+    popup="Localização do Ninho",
     icon=folium.Icon(color="green", icon="home", prefix="fa")
 ).add_to(m)
 
-# Círculo de forrageamento
+# Adicionando o círculo de forrageamento
 folium.Circle(
-    location=[st.session_state.lat, st.session_state.lon],
+    location=centro_mapa,
     radius=raio_metros,
     color='yellow',
     fill=True,
     fill_color='orange',
-    fill_opacity=0.3
+    fill_opacity=0.3,
+    popup=f"{especie_escolhida} - Raio: {raio_metros}m"
 ).add_to(m)
 
-# Captura o clique
-output = st_folium(m, width=700, height=450)
+# Exibir o mapa no Streamlit com chave única
+output = st_folium(m, width=700, height=450, key="meu_mapa_abelhas")
 
+# Se o usuário clicar no mapa, atualizamos as coordenadas e recarregamos
 if output and output.get("last_clicked"):
-    new_lat = output["last_clicked"]["lat"]
-    new_lon = output["last_clicked"]["lng"]
-    
-    # Verifica se a coordenada mudou significativamente
-    if abs(new_lat - st.session_state.lat) > 0.000001 or abs(new_lon - st.session_state.lon) > 0.000001:
-        st.session_state.lat = new_lat
-        st.session_state.lon = new_lon
+    clicked_lat = output["last_clicked"]["lat"]
+    clicked_lon = output["last_clicked"]["lng"]
+    if clicked_lat != st.session_state.lat or clicked_lon != st.session_state.lon:
+        st.session_state.lat = clicked_lat
+        st.session_state.lon = clicked_lon
         st.rerun()
 
-# --- SEÇÃO DE APOIO E DOAÇÃO VIA PIX ---
-# (Manter o restante do código igual a partir daqui...)
 # --- SEÇÃO DE APOIO E DOAÇÃO VIA PIX ---
 st.markdown("---")
 st.markdown("### ☕ Apoie este Projeto")
