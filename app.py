@@ -31,11 +31,13 @@ st.markdown("Descubra o raio de alcance das abelhas nativas a partir da sua loca
 
 # Dicionário completo de espécies e raios em ordem alfabética
 especies_abelhas = {
-    "Apis mellifera (Abelha com ferrão / Europa/Africana)": 2500,
+    "Arapuá/Irapuã (Trigona spinipes)":1000,
+    "Boca-de-Sapo (Partamona helleri)":700,
+    "Jataí-da-Terra (Paratrigona subnuda e Paratrigona lineata)":500,
+    "Jataí-Acriana (Tetragonisca weyrauchi)":500,
     "Boiassu (Melipona interrupta)": 1500,
     "Bugia (Melipona bicolor)": 1000,
     "Canudo (Scaptotrigona depilis)": 1500,
-    "Cephalotrigona capitata (Mombucão)": 1000,
     "Guaraipo (Melipona bicolor schencki)": 1000,
     "Guiruçu (Schwarziana quadripunctata)": 1000,
     "Iraí (Nannotrigona testaceicornis)": 500,
@@ -48,7 +50,10 @@ especies_abelhas = {
     "Mandaguari Preta (Scaptotrigona postica)": 1500,
     "Mano-Pé (Scaptotrigona bipunctata)": 1500,
     "Mirim-droryana (Plebeia droryana)": 400,
+    "Mirim-emerina (Plebeia emerina)":500,
     "Mirim-preguiça (Frieseomelitta varia)": 500,
+    "Mirim-guaçu (Plebeia remota)":700,
+    "Mirim-saitá (Plebeia moureana)":500,
     "Mombucão (Cephalotrigona capitata)": 1000,
     "Mosquito / Abelha-cachorro (Lestrimelitta limao)": 1000,
     "Rabo-de-tatu (Nannotrigona punctata)": 500,
