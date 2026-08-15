@@ -50,6 +50,7 @@ especies_abelhas = {
     "Mandaguari Amarela (Scaptotrigona xanthotricha)": 1500,
     "Mandaguari Preta (Scaptotrigona postica)": 1500,
     "Mano-Pé (Scaptotrigona bipunctata)": 1500,
+    "Marmelada (Frieseomelitta varia)":500,
     "Mirim-droryana (Plebeia droryana)": 400,
     "Mirim-emerina (Plebeia emerina)":500,
     "Mirim-preguiça (Frieseomelitta varia)": 500,
@@ -62,7 +63,9 @@ especies_abelhas = {
     "Tubuna (Scaptotrigona bipunctata)": 1500,
     "Uruçu-amarela (Melipona rufiventris)": 1500,
     "Uruçu-cinzenta (Melipona fasciculata)": 1500,
+    "Uruçu-caboclo (Melipona fuscopilosa)":1700,
     "Uruçu-do-chão (Melipona capixaba)": 1500,
+    "Uruçu-grandis / Uruçu-grande (Melipona grandis)":2700,
     "Uruçu-nordestina (Melipona scutellaris)": 1500,
     "Uruçu-True / Amarela (Melipona flavolineata)": 1500
 }
