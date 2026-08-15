@@ -45,7 +45,7 @@ especies_abelhas = {
 # Inicializador do Geopy
 geolocator = Nominatim(user_agent="raio_abelhas_app")
 
-# Seção principal bem visível (Sem menu lateral escondido)
+# Seção principal bem visível
 st.subheader("1️⃣ Escolha a Espécie de Abelha")
 especie_escolhida = st.selectbox(
     "Selecione na lista abaixo:", 
@@ -87,12 +87,9 @@ if endereco_busca:
     except Exception:
         st.error("Erro ao buscar endereço.")
 
-# Ajuste fino opcional de coordenadas
-with st.expander("⚙️ Ajustar coordenadas manualmente (Opcional)"):
-    lat_inicial = st.number_input("Latitude", value=lat_padrao, format="%.6f")
-    lon_inicial = st.number_input("Longitude", value=lon_padrao, format="%.6f")
-else: # Correção feita aqui
-    lat_inicial, lon_inicial = lat_padrao, lon_padrao
+# Inputs manuais diretos e limpos
+lat_inicial = st.number_input("Latitude", value=lat_padrao, format="%.6f")
+lon_inicial = st.number_input("Longitude", value=lon_padrao, format="%.6f")
 
 # Inicializando estado da sessão
 if 'lat' not in st.session_state:
