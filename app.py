@@ -197,7 +197,7 @@ if output and output.get("last_clicked"):
 st.markdown("---")
 st.markdown("### ☕ Apoie este Projeto")
 st.markdown(
-    "Este ferramenta é **100% gratuita** e desenvolvida para apoiar a meliponicultura, "
+    "Esta ferramenta é **100% gratuita** e desenvolvida para apoiar a meliponicultura, "
     "a pesquisa e o manejo consciente das nossas abelhas nativas. "
     "Se a ferramenta foi útil para você e quiser colaborar com a manutenção do projeto, "
     "qualquer contribuição via Pix é muito bem-vinda!"
