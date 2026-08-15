@@ -78,18 +78,21 @@ st.info(f"🎯 Raio de alcance estimado para a **{especie_escolhida}**: **{raio_
 st.markdown("---")
 st.subheader("2️⃣ Localização do Ninho")
 
+# Inicializa o session_state se não existir (Coordenadas padrão: Rio de Janeiro)
+if 'lat' not in st.session_state:
+    st.session_state.lat = -22.9068
+if 'lon' not in st.session_state:
+    st.session_state.lon = -43.1729
+
 # Botão de GPS do dispositivo
 st.markdown("**Opção A: Usar GPS do celular/computador**")
 loc_gps = streamlit_geolocation()
 
-# Coordenadas padrão iniciais (Rio de Janeiro)
-lat_padrao, lon_padrao = -22.9068, -43.1729
-
-# Se o GPS retornou coordenadas válidas
 if loc_gps and loc_gps.get('latitude') and loc_gps.get('longitude'):
-    lat_padrao = loc_gps['latitude']
-    lon_padrao = loc_gps['longitude']
-    st.success("📍 Localização obtida via GPS com sucesso!")
+    if loc_gps['latitude'] != st.session_state.lat or loc_gps['longitude'] != st.session_state.lon:
+        st.session_state.lat = loc_gps['latitude']
+        st.session_state.lon = loc_gps['longitude']
+        st.success("📍 Localização obtida via GPS com sucesso!")
 
 # Opção de busca por endereço
 endereco_busca = st.text_input("🔍 **Opção B: Ou digite o endereço / cidade:**")
@@ -98,25 +101,20 @@ if endereco_busca:
     try:
         loc = geolocator.geocode(endereco_busca)
         if loc:
-            lat_padrao = loc.latitude
-            lon_padrao = loc.longitude
+            st.session_state.lat = loc.latitude
+            st.session_state.lon = loc.longitude
             st.success(f"Encontrado: {loc.address[:50]}...")
         else:
             st.error("Endereço não encontrado.")
     except Exception:
         st.error("Erro ao buscar endereço.")
 
-# Inputs manuais diretos e limpos
-lat_inicial = st.number_input("Latitude", value=lat_padrao, format="%.6f")
-lon_inicial = st.number_input("Longitude", value=lon_padrao, format="%.6f")
+# Inputs manuais atrelados diretamente ao session_state
+lat_inicial = st.number_input("Latitude", value=float(st.session_state.lat), format="%.6f")
+lon_inicial = st.number_input("Longitude", value=float(st.session_state.lon), format="%.6f")
 
-# Inicializando estado da sessão
-if 'lat' not in st.session_state:
-    st.session_state.lat = lat_inicial
-    st.session_state.lon = lon_inicial
-
-# Atualiza se houver mudança relevante nos inputs
-if st.session_state.lat != lat_inicial or st.session_state.lon != lon_inicial:
+# Se o usuário alterou manualmente nos números, atualiza o estado
+if lat_inicial != st.session_state.lat or lon_inicial != st.session_state.lon:
     st.session_state.lat = lat_inicial
     st.session_state.lon = lon_inicial
 
@@ -124,7 +122,7 @@ st.markdown("---")
 st.markdown("### 🗺️ Mapa de Forrageamento")
 st.markdown("💡 *Toque no mapa para reposicionar o ninho.*")
 
-# Definindo o centro do mapa com base no session_state
+# Definindo o centro atual do mapa
 centro_mapa = [st.session_state.lat, st.session_state.lon]
 
 # Criando o mapa base
@@ -160,7 +158,7 @@ folium.Circle(
 # Exibir o mapa no Streamlit com chave única
 output = st_folium(m, width=700, height=450, key="meu_mapa_abelhas")
 
-# Se o usuário clicar no mapa, atualizamos as coordenadas e recarregamos
+# Se o usuário clicar no mapa, atualizamos as coordenadas no session_state e recarregamos imediatamente
 if output and output.get("last_clicked"):
     clicked_lat = output["last_clicked"]["lat"]
     clicked_lon = output["last_clicked"]["lng"]
