@@ -31,6 +31,7 @@ st.markdown("Descubra o raio de alcance das abelhas nativas a partir da sua loca
 
 # Dicionário completo de espécies e raios em ordem alfabética
 especies_abelhas = {
+    "Jataí-Acriana (Tetragonisca weyrauchi)" 500,
     "Boiassu (Melipona interrupta)": 1500,
     "Bugia (Melipona bicolor)": 1000,
     "Canudo (Scaptotrigona depilis)": 1500,
