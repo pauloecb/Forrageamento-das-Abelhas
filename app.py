@@ -5,10 +5,10 @@ from geopy.geocoders import Nominatim
 from streamlit_geolocation import streamlit_geolocation
 
 # Configuração da página do app
-st.set_page_config(page_title="Raios de Forrageamento de Abelhas", layout="wide")
+st.set_page_config(page_title="Raios de Forrageamento de Abelhas", layout="centered")
 
-st.title("🌿 Rastreador de Raio de Forrageamento - Abelhas Nativas")
-st.markdown("Use o GPS, busque por endereço, digite coordenadas ou clique no mapa para posicionar o ninho.")
+st.title("🌿 Rastreador de Forrageamento")
+st.markdown("Descubra o raio de alcance das abelhas nativas a partir da sua localização.")
 
 # Dicionário completo de espécies e raios em ordem alfabética
 especies_abelhas = {
@@ -45,33 +45,38 @@ especies_abelhas = {
 # Inicializador do Geopy
 geolocator = Nominatim(user_agent="raio_abelhas_app")
 
-# Barra lateral para escolhas
-st.sidebar.header("Configurações")
-especie_escolhida = st.sidebar.selectbox(
-    "Escolha a Espécie de Abelha:", 
-    sorted(list(especies_abelhas.keys()))
+# Seção principal bem visível (Sem menu lateral escondido)
+st.subheader("1️⃣ Escolha a Espécie de Abelha")
+especie_escolhida = st.selectbox(
+    "Selecione na lista abaixo:", 
+    sorted(list(especies_abelhas.keys())),
+    label_visibility="collapsed"
 )
 raio_metros = especies_abelhas[especie_escolhida]
 
-st.sidebar.info(f"O raio estimado para a **{especie_escolhida}** é de **{raio_metros} metros**.")
+st.info(f"🎯 Raio de alcance estimado para a **{especie_escolhida}**: **{raio_metros} metros**.")
 
-st.sidebar.subheader("📍 Localização do Ninho")
+st.markdown("---")
+st.subheader("2️⃣ Localização do Ninho")
 
-# Botão de GPS do dispositivo
-st.sidebar.markdown("**Obter via GPS:**")
-loc_gps = streamlit_geolocation()
+# Criando colunas para os botões de localização ficarem organizados no celular
+col_gps, col_end = st.columns(1)
+
+with col_gps:
+    st.markdown("**Opção A: Usar GPS do celular/computador**")
+    loc_gps = streamlit_geolocation()
 
 # Coordenadas padrão iniciais (Rio de Janeiro)
 lat_padrao, lon_padrao = -22.9068, -43.1729
 
-# Se o GPS retornou coordenadas válidas, usamos elas
+# Se o GPS retornou coordenadas válidas
 if loc_gps and loc_gps.get('latitude') and loc_gps.get('longitude'):
     lat_padrao = loc_gps['latitude']
     lon_padrao = loc_gps['longitude']
-    st.sidebar.success("Localização obtida via GPS com sucesso!")
+    st.success("📍 Localização obtida via GPS com sucesso!")
 
 # Opção de busca por endereço
-endereco_busca = st.sidebar.text_input("🔍 Ou busque por Endereço/Cidade:")
+endereco_busca = st.text_input("🔍 **Opção B: Ou digite o endereço / cidade:**")
 
 if endereco_busca:
     try:
@@ -79,25 +84,32 @@ if endereco_busca:
         if loc:
             lat_padrao = loc.latitude
             lon_padrao = loc.longitude
-            st.sidebar.success(f"Encontrado: {loc.address[:40]}...")
+            st.success(f"Encontrado: {loc.address[:50]}...")
         else:
-            st.sidebar.error("Endereço não encontrado.")
+            st.error("Endereço não encontrado.")
     except Exception:
-        st.sidebar.error("Erro ao buscar endereço.")
+        st.error("Erro ao buscar endereço.")
 
-# Campos manuais de coordenadas
-lat_inicial = st.sidebar.number_input("Latitude", value=lat_padrao, format="%.6f")
-lon_inicial = st.sidebar.number_input("Longitude", value=lon_padrao, format="%.6f")
+# Ajuste fino opcional de coordenadas
+with st.expander("⚙️ Ajustar coordenadas manualmente (Opcional)"):
+    lat_inicial = st.number_input("Latitude", value=lat_padrao, format="%.6f")
+    lon_inicial = st.number_input("Longitude", value=lon_padrao, format="%.6f")
+else:
+    lat_inicial, lon_inicial = lat_padrao, lon_padrao
 
 # Inicializando estado da sessão
 if 'lat' not in st.session_state:
     st.session_state.lat = lat_inicial
     st.session_state.lon = lon_inicial
 
-# Atualiza se houver mudança nos inputs ou GPS
+# Atualiza se houver mudança relevante
 if st.session_state.lat != lat_inicial or st.session_state.lon != lon_inicial:
     st.session_state.lat = lat_inicial
     st.session_state.lon = lon_inicial
+
+st.markdown("---")
+st.markdown("### 🗺️ Mapa de Forrageamento")
+st.markdown("💡 *Toque no mapa para reposicionar o ninho se preferir.*")
 
 # Criando o mapa base
 m = folium.Map(location=[st.session_state.lat, st.session_state.lon], zoom_start=15, tiles="CartoDB positron")
@@ -129,11 +141,8 @@ folium.Marker(
     icon=folium.Icon(color="green", icon="home", prefix="fa")
 ).add_to(m)
 
-st.markdown("### 🗺️ Mapa Interativo")
-st.markdown("💡 *Dica:* Clique em **Start** no botão de GPS, digite um endereço, ou clique diretamente no mapa para ajustar a posição.")
-
-# Exibir o mapa no Streamlit (chamando st_folium corretamente)
-output = st_folium(m, width=700, height=500, key="mapa_abelhas")
+# Exibir o mapa no Streamlit
+output = st_folium(m, width=700, height=450, key="mapa_abelhas")
 
 # Se o usuário clicar no mapa, atualizamos as coordenadas
 if output and output.get("last_clicked"):
