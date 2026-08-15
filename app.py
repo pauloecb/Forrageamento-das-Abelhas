@@ -209,4 +209,4 @@ st.write("🏦 **Banco:** Nubank")
 st.markdown("🔑 **Chave Pix (Toque no campo abaixo para copiar):**")
 st.code("02450e96-4a41-4b62-8275-0b741c23a42b", language="text")
 
-st.success("💛 **Muito obrigado por apoiar a preservação das abelhas nativas e a meliponicultura! Atensiosamente: Maria Alice R. M. Castelo Branco e Paulo Eduardo Castelo Branco** 🐝")
+st.success("💛 **Muito obrigado por apoiar a preservação das abelhas nativas e a meliponicultura! Atenciosamente: Maria Alice R. M. Castelo Branco e Paulo Eduardo Castelo Branco** 🐝")
