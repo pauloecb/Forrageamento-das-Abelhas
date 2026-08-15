@@ -59,12 +59,9 @@ st.info(f"🎯 Raio de alcance estimado para a **{especie_escolhida}**: **{raio_
 st.markdown("---")
 st.subheader("2️⃣ Localização do Ninho")
 
-# Criando colunas para os botões de localização ficarem organizados no celular
-col_gps, col_end = st.columns(1)
-
-with col_gps:
-    st.markdown("**Opção A: Usar GPS do celular/computador**")
-    loc_gps = streamlit_geolocation()
+# Botão de GPS do dispositivo
+st.markdown("**Opção A: Usar GPS do celular/computador**")
+loc_gps = streamlit_geolocation()
 
 # Coordenadas padrão iniciais (Rio de Janeiro)
 lat_padrao, lon_padrao = -22.9068, -43.1729
@@ -94,7 +91,7 @@ if endereco_busca:
 with st.expander("⚙️ Ajustar coordenadas manualmente (Opcional)"):
     lat_inicial = st.number_input("Latitude", value=lat_padrao, format="%.6f")
     lon_inicial = st.number_input("Longitude", value=lon_padrao, format="%.6f")
-else:
+else: # Correção feita aqui
     lat_inicial, lon_inicial = lat_padrao, lon_padrao
 
 # Inicializando estado da sessão
