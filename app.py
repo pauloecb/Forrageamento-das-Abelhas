@@ -3,6 +3,7 @@ import folium
 from streamlit_folium import st_folium
 from geopy.geocoders import Nominatim
 from streamlit_geolocation import streamlit_geolocation
+import requests
 
 # Configuração da página do app
 st.set_page_config(page_title="Rastreador de Abelhas", page_icon="🐝", layout="centered")
@@ -27,7 +28,7 @@ st.markdown(
 )
 
 st.title("🌿 Rastreador de Forrageamento")
-st.markdown("Descubra o raio de alcance das abelhas nativas a partir da sua localização.")
+st.markdown("Descubra o raio de alcance das abelhas nativas a partir da sua localização e analise os recursos do entorno.")
 
 # Dicionário completo de espécies e raios em ordem alfabética
 especies_abelhas = {
@@ -178,6 +179,62 @@ if output and output.get("last_clicked"):
         st.session_state.lat = clicked_lat
         st.session_state.lon = clicked_lon
         st.rerun()
+
+# --- NOVA SEÇÃO: ANÁLISE DE RECURSOS DO ENTORNO (OPENSTREETMAP) ---
+st.markdown("---")
+st.markdown("### 🔍 Recursos e Cobertura no Raio de Voo")
+
+with st.expander("📊 Ver análise automática do entorno (Água e Vegetação)", expanded=False):
+    st.markdown("Buscando dados cartográficos abertos para esta área...")
+    
+    overpass_url = "https://overpass-api.de/api/interpreter"
+    # Consulta Overpass para buscar rios, matas, plantações e parques no raio especificado
+    overpass_query = f"""
+    [out:json][timeout:10];
+    (
+      way(around:{raio_metros},{st.session_state.lat},{st.session_state.lon})["waterway"];
+      way(around:{raio_metros},{st.session_state.lat},{st.session_state.lon})["natural"="water"];
+      way(around:{raio_metros},{st.session_state.lat},{st.session_state.lon})["natural"="wood"];
+      way(around:{raio_metros},{st.session_state.lat},{st.session_state.lon})["landuse"="forest"];
+      way(around:{raio_metros},{st.session_state.lat},{st.session_state.lon})["landuse"="farmland"];
+      way(around:{raio_metros},{st.session_state.lat},{st.session_state.lon})["leisure"="park"];
+    );
+    out tags;
+    """
+    
+    try:
+        response = requests.get(overpass_url, params={'data': overpass_query}, timeout=12)
+        if response.status_code == 200:
+            data = response.json().get('elements', [])
+            
+            # Contadores por categoria
+            recursos = {"Água (Rios/Lagos)": 0, "Áreas de Mata / Floresta": 0, "Áreas Agrícolas / Plantações": 0, "Parques / Praças": 0}
+            
+            for el in data:
+                tags = el.get('tags', {})
+                if 'waterway' in tags or tags.get('natural') == 'water':
+                    recursos["Água (Rios/Lagos)"] += 1
+                elif tags.get('natural') == 'wood' or tags.get('landuse') == 'forest':
+                    recursos["Áreas de Mata / Floresta"] += 1
+                elif tags.get('landuse') == 'farmland':
+                    recursos["Áreas Agrícolas / Plantações"] += 1
+                elif tags.get('leisure') == 'park':
+                    recursos["Parques / Praças"] += 1
+
+            total_elementos = sum(recursos.values())
+            
+            if total_elementos > 0:
+                st.success(formaz_msg := f"Foram identificados registros cartográficos de interesse dentro de {raio_metros} metros:")
+                for cat, qtd in recursos.items():
+                    if qtd > 0:
+                        st.write(f"- **{cat}:** {qtd} registro(s) mapeado(s)")
+                st.markdown("💡 *Nota: Esses dados vêm de mapeamento colaborativo (OpenStreetMap) e servem como apoio complementar ao pasto apícola.*")
+            else:
+                st.info("Nenhum elemento específico de água ou vegetação densa foi catalogado via OpenStreetMap neste raio exato, mas verifique visualmente na camada de satélite do mapa acima.")
+        else:
+            st.warning("Não foi possível consultar os dados do OpenStreetMap no momento.")
+    except Exception:
+        st.warning("Servidor de dados geográficos temporariamente indisponível. O mapa principal continua funcionando normalmente.")
 
 # --- SEÇÃO DE APOIO E DOAÇÃO VIA PIX ---
 st.markdown("---")
