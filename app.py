@@ -119,52 +119,50 @@ if st.session_state.lat != lat_inicial or st.session_state.lon != lon_inicial:
     st.session_state.lat = lat_inicial
     st.session_state.lon = lon_inicial
 
-st.markdown("---")
 st.markdown("### 🗺️ Mapa de Forrageamento")
-st.markdown("💡 *Toque no mapa para reposicionar o ninho se preferir.*")
+st.markdown("💡 *Toque no mapa para reposicionar o ninho.*")
 
 # Criando o mapa base
 m = folium.Map(location=[st.session_state.lat, st.session_state.lon], zoom_start=15, tiles="CartoDB positron")
 
-# Adicionar camada de Satélite (Esri World Imagery)
+# Camada de satélite
 folium.TileLayer(
     tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     attr='Esri',
-    name='Visão de Satélite',
-    overlay=False,
-    control=True
+    name='Visão de Satélite'
 ).add_to(m)
 
-# Adicionando o círculo de forrageamento
+# Marcador que se move conforme o clique
+folium.Marker(
+    location=[st.session_state.lat, st.session_state.lon],
+    icon=folium.Icon(color="green", icon="home", prefix="fa")
+).add_to(m)
+
+# Círculo de forrageamento
 folium.Circle(
     location=[st.session_state.lat, st.session_state.lon],
     radius=raio_metros,
     color='yellow',
     fill=True,
     fill_color='orange',
-    fill_opacity=0.3,
-    popup=f"{especie_escolhida} - Raio: {raio_metros}m"
+    fill_opacity=0.3
 ).add_to(m)
 
-# Marcador do Ninho
-folium.Marker(
-    location=[st.session_state.lat, st.session_state.lon],
-    popup="Localização do Ninho",
-    icon=folium.Icon(color="green", icon="home", prefix="fa")
-).add_to(m)
+# Captura o clique
+output = st_folium(m, width=700, height=450)
 
-# Exibir o mapa no Streamlit
-output = st_folium(m, width=700, height=450, key="mapa_abelhas")
-
-# Se o usuário clicar no mapa, atualizamos as coordenadas
 if output and output.get("last_clicked"):
-    clicked_lat = output["last_clicked"]["lat"]
-    clicked_lon = output["last_clicked"]["lng"]
-    if clicked_lat != st.session_state.lat or clicked_lon != st.session_state.lon:
-        st.session_state.lat = clicked_lat
-        st.session_state.lon = clicked_lon
+    new_lat = output["last_clicked"]["lat"]
+    new_lon = output["last_clicked"]["lng"]
+    
+    # Verifica se a coordenada mudou significativamente
+    if abs(new_lat - st.session_state.lat) > 0.000001 or abs(new_lon - st.session_state.lon) > 0.000001:
+        st.session_state.lat = new_lat
+        st.session_state.lon = new_lon
         st.rerun()
 
+# --- SEÇÃO DE APOIO E DOAÇÃO VIA PIX ---
+# (Manter o restante do código igual a partir daqui...)
 # --- SEÇÃO DE APOIO E DOAÇÃO VIA PIX ---
 st.markdown("---")
 st.markdown("### ☕ Apoie este Projeto")
