@@ -165,3 +165,21 @@ if output and output.get("last_clicked"):
         st.session_state.lat = clicked_lat
         st.session_state.lon = clicked_lon
         st.rerun()
+
+# --- SEÇÃO DE APOIO E DOAÇÃO VIA PIX ---
+st.markdown("---")
+st.markdown("### ☕ Apoie este Projeto")
+st.markdown(
+    "Este aplicativo é **100% gratuito** e desenvolvido para apoiar a meliponicultura, "
+    "a pesquisa e o manejo consciente das nossas abelhas nativas. "
+    "Se a ferramenta foi útil para você e quiser colaborar com a manutenção do projeto, "
+    "qualquer contribuição via Pix é muito bem-vinda!"
+)
+
+st.markdown("**Dados para Doação via Pix:**")
+st.write("👤 **Favorecido:** Paulo Eduardo Castelo Branco Geraldo")
+st.write("🏦 **Banco:** Nubank")
+st.markdown("🔑 **Chave Pix (Toque no campo abaixo para copiar):**")
+st.code("02450e96-4a41-4b62-8275-0b741c23a42b", language="text")
+
+st.success("💛 **Muito obrigado por apoiar a preservação das abelhas nativas e a meliponicultura!** 🐝")
