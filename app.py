@@ -31,6 +31,7 @@ st.markdown("Descubra o raio de alcance das abelhas nativas a partir da sua loca
 
 # Dicionário completo de espécies e raios em ordem alfabética
 especies_abelhas = {
+    "Arapuá/Irapuã (Trigona spinipes)":1000,
     "Boca-de-Sapo (Partamona helleri)":700,
     "Jataí-da-Terra (Paratrigona subnuda e Paratrigona lineata)":500,
     "Jataí-Acriana (Tetragonisca weyrauchi)":500,
