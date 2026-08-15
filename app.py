@@ -26,7 +26,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.title("🌿 Rastreador de Forrageamento")
+st.title("🌿 Rastreador de Forrageamento de Abelhas Nativas")
 st.markdown("Descubra o raio de alcance das abelhas nativas a partir da sua localização.")
 
 # Dicionário completo de espécies e raios em ordem alfabética
