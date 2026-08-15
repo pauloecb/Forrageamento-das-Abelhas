@@ -73,7 +73,19 @@ especie_escolhida = st.selectbox(
 )
 raio_metros = especies_abelhas[especie_escolhida]
 
+# Resumo e aviso colaborativo
 st.info(f"🎯 Raio de alcance estimado para a **{especie_escolhida}**: **{raio_metros} metros**.")
+
+st.markdown(
+    """
+    <div style="background-color: #f0f8ff; padding: 12px; border-radius: 5px; border-left: 5px solid #2196f3; margin-bottom: 20px;">
+        🐝 <b>Não encontrou alguma abelha?</b><br>
+        Envie um e-mail para <a href="mailto:paulo_eduardo_cb@hotmail.com">paulo_eduardo_cb@hotmail.com</a> 
+        com o nome da abelha para que possamos adicionar.
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
 
 st.markdown("---")
 st.subheader("2️⃣ Localização do Ninho")
