@@ -5,7 +5,26 @@ from geopy.geocoders import Nominatim
 from streamlit_geolocation import streamlit_geolocation
 
 # Configuração da página do app
-st.set_page_config(page_title="Raios de Forrageamento de Abelhas", layout="centered")
+st.set_page_config(page_title="Rastreador de Abelhas", page_icon="🐝", layout="centered")
+
+# Injetando metadados de PWA para forçar o nome correto no celular
+st.markdown(
+    """
+    <head>
+        <meta name="apple-mobile-web-app-title" content="Rastreador de Abelhas">
+        <meta name="application-name" content="Rastreador de Abelhas">
+        <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
+            'name': 'Rastreador de Abelhas',
+            'short_name': 'Abelhas',
+            'start_url': '.',
+            'display': 'standalone',
+            'background_color': '#ffffff',
+            'theme_color': '#FF4B4B'
+        }">
+    </head>
+    """,
+    unsafe_allow_html=True
+)
 
 st.title("🌿 Rastreador de Forrageamento")
 st.markdown("Descubra o raio de alcance das abelhas nativas a partir da sua localização.")
