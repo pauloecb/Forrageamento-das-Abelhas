@@ -37,7 +37,7 @@ especies_abelhas = {
     "Jataí-da-Terra (Paratrigona subnuda e Paratrigona lineata)":500,
     "Jataí-Acriana (Tetragonisca weyrauchi)":500,
     "Boiassu (Melipona interrupta)": 1500,
-    "Bugia (Melipona bicolor)": 1000,
+    "Bugia (Melipona mondury)": 1000,
     "Canudo (Scaptotrigona depilis)": 1500,
     "Guaraipo (Melipona bicolor schencki)": 1000,
     "Guiruçu (Schwarziana quadripunctata)": 1000,
