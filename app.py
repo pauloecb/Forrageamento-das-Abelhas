@@ -39,7 +39,7 @@ especies_abelhas = {
     "Boiassu (Melipona interrupta)": 1500,
     "Bugia (Melipona mondury)": 1000,
     "Canudo (Scaptotrigona depilis)": 1500,
-    "Guaraipo (Melipona bicolor schencki)": 1000,
+    "Guaraipo (Melipona bicolor)": 1000,
     "Guiruçu (Schwarziana quadripunctata)": 1000,
     "Iraí (Nannotrigona testaceicornis)": 500,
     "Jandaíra (Melipona subnitida)": 1000,
