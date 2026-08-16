@@ -57,7 +57,7 @@ especies_abelhas = {
     "Mirim-guaçu (Plebeia remota)":700,
     "Mirim-saitá (Plebeia moureana)":500,
     "Mombucão (Cephalotrigona capitata)": 1000,
-    "Mosquito / Abelha-cachorro (Lestrimelitta limao)": 1000,
+    "Limão (Lestrimelitta limao)": 1000,
     "Rabo-de-tatu (Nannotrigona punctata)": 500,
     "Tiúba (Melipona fasciculata)": 1500,
     "Tubuna (Scaptotrigona bipunctata)": 1500,
