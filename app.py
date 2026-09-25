@@ -5,7 +5,6 @@ from branca.element import Element
 from streamlit_folium import st_folium
 from geopy.geocoders import Nominatim
 import math
-import re
 
 
 # ============================================================
@@ -61,31 +60,6 @@ st.markdown("""
     color: #37474f;
     margin-top: 1rem;
     margin-bottom: 1rem;
-}
-
-
-/* CARD DA ABELHA */
-
-.bee-card {
-    background: linear-gradient(135deg, #fffdf3, #fff8d9);
-    border: 1px solid #f0df91;
-    border-radius: 16px;
-    padding: 20px;
-    margin-top: 12px;
-    margin-bottom: 18px;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.05);
-}
-
-.bee-name {
-    font-size: 1.45rem;
-    font-weight: 800;
-    color: #4e342e;
-}
-
-.bee-scientific {
-    font-size: 0.95rem;
-    color: #795548;
-    margin-top: 3px;
 }
 
 
@@ -186,7 +160,7 @@ div[data-baseweb="select"] > div {
 }
 
 
-/* CONTROLE DE LOCALIZAÇÃO DO FOLIUM */
+/* CONTROLE GPS */
 
 .leaflet-control-locate a {
     background-color: white !important;
@@ -199,9 +173,12 @@ div[data-baseweb="select"] > div {
 }
 
 
-/* MELHORA VISUAL DOS CONTROLES DO MAPA */
+/* CONTROLES DO MAPA */
 
-.leaflet-control-zoom a,
+.leaflet-control-zoom a {
+    border-radius: 8px !important;
+}
+
 .leaflet-control-layers {
     border-radius: 8px !important;
 }
@@ -315,25 +292,20 @@ especies_abelhas = {
 # ============================================================
 
 def extrair_nome_cientifico(nome):
-    """
-    Extrai o conteúdo entre parênteses.
-    """
-    resultado = re.search(r"\((.*?)\)", nome)
+    inicio = nome.find("(")
+    fim = nome.rfind(")")
 
-    if resultado:
-        return resultado.group(1)
+    if inicio != -1 and fim != -1:
+        return nome[inicio + 1:fim]
 
     return ""
 
 
 def extrair_nome_popular(nome):
-    """
-    Extrai o nome popular antes dos parênteses.
-    """
-    resultado = re.search(r"^(.*?)\s*\(", nome)
+    inicio = nome.find("(")
 
-    if resultado:
-        return resultado.group(1).strip()
+    if inicio != -1:
+        return nome[:inicio].strip()
 
     return nome
 
@@ -351,11 +323,11 @@ def formatar_area(area):
 
 
 # ============================================================
-# 1 — ESCOLHA DA ABELHA
+# 1 — ESCOLHA DA ESPÉCIE
 # ============================================================
 
 st.markdown(
-    '<div class="section-title">🐝 1. Escolha da abelha</div>',
+    '<div class="section-title">🐝 1. Escolha da espécie</div>',
     unsafe_allow_html=True
 )
 
@@ -374,24 +346,15 @@ area_km2 = calcular_area_km2(raio_metros)
 
 
 # ============================================================
-# CARD DA ESPÉCIE
+# INFORMAÇÃO DA ESPÉCIE
 # ============================================================
 
 st.markdown(
     f"""
-    <div class="bee-card">
+    **{nome_popular}**
 
-        <div class="bee-name">
-            🐝 {nome_popular}
-        </div>
-
-        <div class="bee-scientific">
-            {nome_cientifico}
-        </div>
-
-    </div>
-    """,
-    unsafe_allow_html=True
+    *{nome_cientifico}*
+    """
 )
 
 
@@ -402,6 +365,7 @@ st.markdown(
 col1, col2, col3 = st.columns(3)
 
 with col1:
+
     st.markdown(
         f"""
         <div class="metric-card">
@@ -413,7 +377,9 @@ with col1:
         unsafe_allow_html=True
     )
 
+
 with col2:
+
     st.markdown(
         f"""
         <div class="metric-card">
@@ -425,7 +391,9 @@ with col2:
         unsafe_allow_html=True
     )
 
+
 with col3:
+
     st.markdown(
         """
         <div class="metric-card">
@@ -478,10 +446,11 @@ st.markdown(
 st.markdown(
     """
     <div class="info-box">
-        🗺️ <b>Você pode escolher a localização de três formas:</b><br><br>
-        • pesquisar um endereço ou cidade;<br>
-        • tocar diretamente no mapa;<br>
-        • usar o botão ⦿ no canto superior direito do mapa para usar o GPS.
+        🗺️ <b>Escolha a localização do ninho:</b><br><br>
+        • pesquise um endereço ou cidade abaixo;<br>
+        • toque diretamente no ponto desejado no mapa;<br>
+        • ou use o botão ⦿ no canto superior direito do mapa
+        para usar o GPS do dispositivo.
     </div>
     """,
     unsafe_allow_html=True
@@ -549,7 +518,7 @@ if buscar:
 
 
 # ============================================================
-# OPÇÕES AVANÇADAS
+# COORDENADAS MANUAIS
 # ============================================================
 
 with st.expander("⚙️ Opções avançadas — coordenadas"):
@@ -600,7 +569,6 @@ st.markdown(
         font-size:0.95rem;
     ">
         💡 Toque em qualquer ponto do mapa para posicionar o ninho.
-        O botão ⦿ usa a localização atual do seu dispositivo.
     </div>
     """,
     unsafe_allow_html=True
@@ -614,19 +582,20 @@ centro_mapa = [
 
 
 # ============================================================
-# CRIAÇÃO DO MAPA
+# MAPA
 # ============================================================
 
+# SATÉLITE É AGORA O MAPA PADRÃO
 m = folium.Map(
     location=centro_mapa,
     zoom_start=15,
-    tiles="CartoDB positron",
+    tiles=None,
     control_scale=True
 )
 
 
 # ============================================================
-# CAMADA DE SATÉLITE
+# SATÉLITE — CAMADA PADRÃO
 # ============================================================
 
 folium.TileLayer(
@@ -638,19 +607,21 @@ folium.TileLayer(
     attr="Esri",
     name="🛰️ Satélite",
     overlay=False,
-    control=True
+    control=True,
+    show=True
 ).add_to(m)
 
 
 # ============================================================
-# CAMADA MAPA CLARO
+# MAPA CLARO
 # ============================================================
 
 folium.TileLayer(
     tiles="CartoDB positron",
     name="🗺️ Mapa",
     overlay=False,
-    control=True
+    control=True,
+    show=False
 ).add_to(m)
 
 
@@ -660,6 +631,7 @@ folium.TileLayer(
 
 folium.Marker(
     location=centro_mapa,
+
     popup=folium.Popup(
         f"""
         <div style="text-align:center;">
@@ -669,7 +641,9 @@ folium.Marker(
         """,
         max_width=250
     ),
+
     tooltip="🏠 Localização do ninho",
+
     icon=folium.Icon(
         color="green",
         icon="home",
@@ -690,6 +664,7 @@ folium.Circle(
     fill=True,
     fill_color="#ff9800",
     fill_opacity=0.25,
+
     popup=folium.Popup(
         f"""
         <b>{nome_popular}</b><br>
@@ -702,7 +677,7 @@ folium.Circle(
 
 
 # ============================================================
-# CONTROLE DE GPS
+# GPS DENTRO DO MAPA
 # ============================================================
 
 LocateControl(
@@ -711,6 +686,7 @@ LocateControl(
     keepCurrentZoomLevel=False,
     drawCircle=False,
     showPopup=False,
+
     locateOptions={
         "enableHighAccuracy": True,
         "maximumAge": 0,
@@ -720,17 +696,7 @@ LocateControl(
 
 
 # ============================================================
-# INTEGRAÇÃO GPS → LOCALIZAÇÃO DO NINHO
-# ============================================================
-#
-# O LocateControl encontra a localização do dispositivo.
-#
-# Quando a localização é encontrada, este código dispara
-# artificialmente um "clique" no mapa exatamente naquele ponto.
-#
-# O st_folium já sabe capturar cliques no mapa através de
-# "last_clicked". Dessa forma aproveitamos a mesma lógica
-# utilizada para posicionar manualmente o ninho.
+# INTEGRAÇÃO GPS → NINHO
 # ============================================================
 
 map_name = m.get_name()
@@ -749,7 +715,6 @@ gps_bridge = Element(
                 return;
             }}
 
-            // Centraliza o mapa na localização encontrada
             map.setView(
                 [e.latlng.lat, e.latlng.lng],
                 17,
@@ -758,8 +723,6 @@ gps_bridge = Element(
                 }}
             );
 
-            // Envia a localização para o mesmo sistema
-            // usado quando o usuário toca manualmente no mapa.
             setTimeout(function() {{
 
                 map.fire('click', {{
@@ -807,9 +770,9 @@ st.markdown(
     <div class="map-legend">
         🏠 <b>Marcador:</b> localização do ninho
         &nbsp;&nbsp;•&nbsp;&nbsp;
-        🟡 <b>Círculo:</b> raio estimado de forrageamento
+        🟡 <b>Círculo:</b> raio estimado
         &nbsp;&nbsp;•&nbsp;&nbsp;
-        ⦿ <b>GPS:</b> localização atual do dispositivo
+        ⦿ <b>GPS:</b> localização atual
     </div>
     """,
     unsafe_allow_html=True
