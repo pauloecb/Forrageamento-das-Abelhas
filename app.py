@@ -19,13 +19,12 @@ st.set_page_config(
 
 
 # ============================================================
-# CSS
+# ESTILO
 # ============================================================
 
 st.markdown(
     """
     <style>
-
     .stApp {
         background-color: #f7f8fa;
     }
@@ -126,7 +125,6 @@ st.markdown(
     .leaflet-control-layers {
         margin-top: 10px !important;
     }
-
     </style>
     """,
     unsafe_allow_html=True
@@ -143,7 +141,9 @@ st.markdown(
 )
 
 st.markdown(
-    '<div class="main-subtitle">Visualize a área potencial de forrageamento ao redor do seu meliponário.</div>',
+    '<div class="main-subtitle">'
+    'Visualize a área potencial de forrageamento ao redor do seu meliponário.'
+    '</div>',
     unsafe_allow_html=True
 )
 
@@ -194,7 +194,7 @@ especies_abelhas = {
 
 
 # ============================================================
-# SELEÇÃO DA ABELHA
+# SELEÇÃO DA ESPÉCIE
 # ============================================================
 
 st.markdown(
@@ -204,7 +204,6 @@ st.markdown(
 
 lista_especies = list(especies_abelhas.keys())
 
-# Mantém a espécie escolhida entre os reruns
 if "especie_selecionada" not in st.session_state:
     st.session_state.especie_selecionada = (
         "Jataí (Tetragonisca angustula)"
@@ -225,7 +224,7 @@ raio_metros = especies_abelhas[especie_selecionada]
 
 
 # ============================================================
-# NOME DA ESPÉCIE
+# NOME POPULAR / CIENTÍFICO
 # ============================================================
 
 partes = especie_selecionada.split("(", 1)
@@ -236,7 +235,6 @@ if len(partes) > 1:
     nome_cientifico = "(" + partes[1].strip()
 else:
     nome_cientifico = ""
-
 
 st.markdown(
     f"""
@@ -316,7 +314,7 @@ if "lon" not in st.session_state:
 
 
 # ============================================================
-# LOCALIZAÇÃO
+# LOCALIZAÇÃO DO NINHO
 # ============================================================
 
 st.markdown(
@@ -331,14 +329,16 @@ st.caption(
 
 
 # ============================================================
-# BUSCA POR ENDEREÇO
+# PESQUISA DE ENDEREÇO
 # ============================================================
 
 with st.form("form_endereco"):
 
     endereco = st.text_input(
         "Pesquisar endereço",
-        placeholder="Digite rua, bairro, cidade ou ponto de referência"
+        placeholder=(
+            "Digite rua, bairro, cidade ou ponto de referência"
+        )
     )
 
     pesquisar = st.form_submit_button(
@@ -429,6 +429,10 @@ st.markdown(
 )
 
 
+# ------------------------------------------------------------
+# CRIAÇÃO DO MAPA
+# ------------------------------------------------------------
+
 m = folium.Map(
     location=[
         st.session_state.lat,
@@ -441,7 +445,7 @@ m = folium.Map(
 
 
 # ============================================================
-# SATÉLITE — PADRÃO
+# CAMADA DE SATÉLITE
 # ============================================================
 
 folium.TileLayer(
@@ -458,7 +462,7 @@ folium.TileLayer(
 
 
 # ============================================================
-# MAPA NORMAL
+# CAMADA DE MAPA NORMAL
 # ============================================================
 
 folium.TileLayer(
@@ -474,7 +478,7 @@ folium.TileLayer(
 # MARCADOR DO NINHO
 # ============================================================
 
-folium.Marker(
+marcador_ninho = folium.Marker(
     [
         st.session_state.lat,
         st.session_state.lon
@@ -489,14 +493,16 @@ folium.Marker(
         color="orange",
         icon="home"
     )
-).add_to(m)
+)
+
+marcador_ninho.add_to(m)
 
 
 # ============================================================
 # CÍRCULO DE FORRAGEAMENTO
 # ============================================================
 
-folium.Circle(
+circulo_forrageamento = folium.Circle(
     location=[
         st.session_state.lat,
         st.session_state.lon
@@ -507,8 +513,12 @@ folium.Circle(
     fill_color="#f5c542",
     fill_opacity=0.18,
     weight=2,
-    tooltip=f"Raio estimado: {raio_metros} metros"
-).add_to(m)
+    tooltip=(
+        f"Raio estimado: {raio_metros} metros"
+    )
+)
+
+circulo_forrageamento.add_to(m)
 
 
 # ============================================================
@@ -539,53 +549,110 @@ folium.LayerControl(
 
 
 # ============================================================
-# MOSTRAR MAPA
+# ATUALIZAÇÃO INSTANTÂNEA DO GPS
+# ============================================================
+#
+# Aqui está a principal alteração.
+#
+# O evento "locatelocationfound" acontece diretamente no
+# navegador quando o GPS encontra a posição.
+#
+# Em vez de esperar o Streamlit reconstruir o mapa,
+# movemos imediatamente:
+#
+#   1. o marcador do ninho
+#   2. o círculo de forrageamento
+#   3. a câmera do mapa
+#
+# O Streamlit continua recebendo os dados normalmente depois.
+# ============================================================
+
+map_name = m.get_name()
+marker_name = marcador_ninho.get_name()
+circle_name = circulo_forrageamento.get_name()
+
+gps_script = f"""
+<script>
+(function() {{
+
+    var map = {map_name};
+    var marker = {marker_name};
+    var circle = {circle_name};
+
+    if (!map || !marker || !circle) {{
+        return;
+    }}
+
+    /*
+     * Quando o GPS encontrar a posição:
+     * atualiza imediatamente o marcador e o círculo.
+     */
+    map.on("locatelocationfound", function(e) {{
+
+        if (!e || !e.latlng) {{
+            return;
+        }}
+
+        /*
+         * Move o marcador imediatamente.
+         */
+        marker.setLatLng(e.latlng);
+
+        /*
+         * Move o círculo imediatamente.
+         */
+        circle.setLatLng(e.latlng);
+
+        /*
+         * Centraliza o mapa na posição encontrada.
+         */
+        map.flyTo(
+            e.latlng,
+            map.getZoom(),
+            {{
+                animate: true,
+                duration: 0.8
+            }}
+        );
+
+    }});
+
+}})();
+</script>
+"""
+
+m.get_root().html.add_child(
+    Element(gps_script)
+)
+
+
+# ============================================================
+# ENVIO DO MAPA PARA O STREAMLIT
+# ============================================================
+#
+# Não usamos mais "center" como posição do ninho.
+#
+# O centro do mapa é apenas a câmera.
+# O ninho é controlado separadamente.
 # ============================================================
 
 map_data = st_folium(
     m,
     width=700,
     height=580,
-    key="meu_mapa_abelhas"
+    key="meu_mapa_abelhas",
+    returned_objects=[
+        "last_clicked"
+    ]
 )
 
 
 # ============================================================
-# SALVAR POSIÇÃO ATUAL DO MAPA
-#
-# Essa parte é importante para o GPS.
-#
-# Quando o GPS movimenta o mapa, o st_folium retorna
-# o centro atual. Nós usamos essa informação para salvar
-# a posição no session_state.
-#
-# Assim, ao trocar de espécie, a localização permanece.
-# ============================================================
-
-if map_data:
-
-    centro = map_data.get("center")
-
-    if centro:
-
-        centro_lat = centro.get("lat")
-        centro_lon = centro.get("lng")
-
-        if centro_lat is not None and centro_lon is not None:
-
-            # Só atualiza quando existe uma diferença real.
-            if (
-                abs(centro_lat - st.session_state.lat) > 0.000001
-                or
-                abs(centro_lon - st.session_state.lon) > 0.000001
-            ):
-
-                st.session_state.lat = centro_lat
-                st.session_state.lon = centro_lon
-
-
-# ============================================================
 # CLIQUE NO MAPA
+# ============================================================
+#
+# Quando o usuário clicar no mapa, esse ponto passa a ser
+# o novo local do ninho.
 # ============================================================
 
 if map_data:
@@ -597,12 +664,21 @@ if map_data:
         nova_lat = clicked.get("lat")
         nova_lon = clicked.get("lng")
 
-        if nova_lat is not None and nova_lon is not None:
+        if (
+            nova_lat is not None
+            and nova_lon is not None
+        ):
 
             if (
-                abs(nova_lat - st.session_state.lat) > 0.000001
+                abs(
+                    nova_lat -
+                    st.session_state.lat
+                ) > 0.000001
                 or
-                abs(nova_lon - st.session_state.lon) > 0.000001
+                abs(
+                    nova_lon -
+                    st.session_state.lon
+                ) > 0.000001
             ):
 
                 st.session_state.lat = nova_lat
@@ -612,7 +688,7 @@ if map_data:
 
 
 # ============================================================
-# SOBRE ESTA ÁREA
+# SOBRE A ÁREA
 # ============================================================
 
 st.markdown(
@@ -623,7 +699,8 @@ st.markdown(
 st.info(
     f"""
 A área representada possui aproximadamente **{formatar_area(area_km2)}**
-em torno do ninho, considerando um raio estimado de **{raio_metros} metros**.
+em torno do ninho, considerando um raio estimado de
+**{raio_metros} metros**.
 
 Essa representação pode ajudar o meliponicultor a visualizar o entorno
 do meliponário e identificar áreas que podem fazer parte da região
@@ -639,7 +716,7 @@ circular.
 
 
 # ============================================================
-# APOIE O PROJETO
+# APOIO AO PROJETO
 # ============================================================
 
 st.markdown(
@@ -673,7 +750,9 @@ st.markdown(
 # PIX
 # ============================================================
 
-st.markdown("### 💚 Contribuição via Pix")
+st.markdown(
+    "### 💚 Contribuição via Pix"
+)
 
 st.write(
     "**Favorecido:** Paulo Eduardo Castelo Branco Geraldo"
@@ -683,7 +762,9 @@ st.write(
     "**Banco:** Nubank"
 )
 
-st.write("**Chave Pix:**")
+st.write(
+    "**Chave Pix:**"
+)
 
 st.code(
     "02450e96-4a41-4b62-8275-0b741c23a42b",
@@ -691,7 +772,8 @@ st.code(
 )
 
 st.caption(
-    "A contribuição é voluntária e ajuda a manter o projeto em desenvolvimento."
+    "A contribuição é voluntária e ajuda a manter "
+    "o projeto em desenvolvimento."
 )
 
 
