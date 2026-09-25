@@ -204,13 +204,22 @@ st.markdown(
 
 lista_especies = list(especies_abelhas.keys())
 
+# Mantém a espécie escolhida entre os reruns
+if "especie_selecionada" not in st.session_state:
+    st.session_state.especie_selecionada = (
+        "Jataí (Tetragonisca angustula)"
+    )
+
 especie_selecionada = st.selectbox(
     "Espécie da abelha",
     lista_especies,
     index=lista_especies.index(
-        "Jataí (Tetragonisca angustula)"
-    )
+        st.session_state.especie_selecionada
+    ),
+    key="seletor_especie"
 )
+
+st.session_state.especie_selecionada = especie_selecionada
 
 raio_metros = especies_abelhas[especie_selecionada]
 
@@ -462,10 +471,10 @@ folium.TileLayer(
 
 
 # ============================================================
-# MARCADOR INICIAL
+# MARCADOR DO NINHO
 # ============================================================
 
-marker = folium.Marker(
+folium.Marker(
     [
         st.session_state.lat,
         st.session_state.lon
@@ -480,16 +489,14 @@ marker = folium.Marker(
         color="orange",
         icon="home"
     )
-)
-
-marker.add_to(m)
+).add_to(m)
 
 
 # ============================================================
-# CÍRCULO INICIAL
+# CÍRCULO DE FORRAGEAMENTO
 # ============================================================
 
-circle = folium.Circle(
+folium.Circle(
     location=[
         st.session_state.lat,
         st.session_state.lon
@@ -501,9 +508,7 @@ circle = folium.Circle(
     fill_opacity=0.18,
     weight=2,
     tooltip=f"Raio estimado: {raio_metros} metros"
-)
-
-circle.add_to(m)
+).add_to(m)
 
 
 # ============================================================
@@ -525,143 +530,6 @@ LocateControl(
 
 
 # ============================================================
-# CORREÇÃO DO GPS
-#
-# O GPS agora:
-#
-# 1. Localiza o dispositivo.
-# 2. Move o mapa.
-# 3. Move o marcador do ninho.
-# 4. Move o círculo de forrageamento.
-# 5. Mantém o raio da espécie escolhida.
-#
-# ============================================================
-
-map_name = m.get_name()
-
-gps_bridge = Element(
-    f"""
-    <script>
-
-    (function() {{
-
-        var map = {map_name};
-
-        var gpsMarker = null;
-        var gpsCircle = null;
-
-        map.on('locationfound', function(e) {{
-
-            if (!e || !e.latlng) {{
-                return;
-            }}
-
-            var lat = e.latlng.lat;
-            var lon = e.latlng.lng;
-
-            /*
-             * Move a câmera para o GPS.
-             */
-            map.setView(
-                [lat, lon],
-                17,
-                {{ animate: true }}
-            );
-
-
-            /*
-             * Remove marcador GPS anterior.
-             */
-            if (gpsMarker) {{
-                map.removeLayer(gpsMarker);
-            }}
-
-
-            /*
-             * Remove círculo GPS anterior.
-             */
-            if (gpsCircle) {{
-                map.removeLayer(gpsCircle);
-            }}
-
-
-            /*
-             * Cria novo marcador.
-             */
-            gpsMarker = L.marker(
-                [lat, lon],
-                {{
-                    title: "Localização atual"
-                }}
-            ).addTo(map);
-
-
-            gpsMarker.bindTooltip(
-                "🐝 Local do ninho"
-            );
-
-
-            /*
-             * Cria o círculo usando
-             * o raio da espécie escolhida.
-             */
-            gpsCircle = L.circle(
-                [lat, lon],
-                {{
-                    radius: {raio_metros},
-                    color: "#e0a100",
-                    fillColor: "#f5c542",
-                    fillOpacity: 0.18,
-                    weight: 2
-                }}
-            ).addTo(map);
-
-
-            gpsCircle.bindTooltip(
-                "Raio estimado: {raio_metros} metros"
-            );
-
-
-            /*
-             * Tenta informar ao Streamlit
-             * a nova posição.
-             *
-             * O clique abaixo também faz
-             * o st_folium reconhecer a posição.
-             */
-            setTimeout(function() {{
-
-                map.fire(
-                    'click',
-                    {{
-                        latlng: e.latlng
-                    }}
-                );
-
-            }}, 300);
-
-        }});
-
-
-        map.on('locationerror', function(e) {{
-
-            console.warn(
-                "Não foi possível obter a localização:",
-                e.message
-            );
-
-        }});
-
-    }})();
-
-    </script>
-    """
-)
-
-m.get_root().html.add_child(gps_bridge)
-
-
-# ============================================================
 # CONTROLE DE CAMADAS
 # ============================================================
 
@@ -680,6 +548,40 @@ map_data = st_folium(
     height=580,
     key="meu_mapa_abelhas"
 )
+
+
+# ============================================================
+# SALVAR POSIÇÃO ATUAL DO MAPA
+#
+# Essa parte é importante para o GPS.
+#
+# Quando o GPS movimenta o mapa, o st_folium retorna
+# o centro atual. Nós usamos essa informação para salvar
+# a posição no session_state.
+#
+# Assim, ao trocar de espécie, a localização permanece.
+# ============================================================
+
+if map_data:
+
+    centro = map_data.get("center")
+
+    if centro:
+
+        centro_lat = centro.get("lat")
+        centro_lon = centro.get("lng")
+
+        if centro_lat is not None and centro_lon is not None:
+
+            # Só atualiza quando existe uma diferença real.
+            if (
+                abs(centro_lat - st.session_state.lat) > 0.000001
+                or
+                abs(centro_lon - st.session_state.lon) > 0.000001
+            ):
+
+                st.session_state.lat = centro_lat
+                st.session_state.lon = centro_lon
 
 
 # ============================================================
