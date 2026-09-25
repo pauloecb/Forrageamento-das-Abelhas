@@ -99,16 +99,6 @@ st.markdown(
         margin-bottom: 0.7rem;
     }
 
-    .donation-pix {
-        background: #f3f4f6;
-        border-radius: 8px;
-        padding: 0.7rem;
-        font-family: monospace;
-        font-size: 0.85rem;
-        word-break: break-all;
-        margin-top: 0.4rem;
-    }
-
     .footer {
         text-align: center;
         color: #9ca3af;
@@ -442,7 +432,7 @@ m = folium.Map(
 
 
 # ============================================================
-# SATÉLITE — CAMADA PADRÃO
+# SATÉLITE — PADRÃO
 # ============================================================
 
 folium.TileLayer(
@@ -472,10 +462,10 @@ folium.TileLayer(
 
 
 # ============================================================
-# MARCADOR DO NINHO
+# MARCADOR INICIAL
 # ============================================================
 
-folium.Marker(
+marker = folium.Marker(
     [
         st.session_state.lat,
         st.session_state.lon
@@ -490,14 +480,16 @@ folium.Marker(
         color="orange",
         icon="home"
     )
-).add_to(m)
+)
+
+marker.add_to(m)
 
 
 # ============================================================
-# CÍRCULO DE FORRAGEAMENTO
+# CÍRCULO INICIAL
 # ============================================================
 
-folium.Circle(
+circle = folium.Circle(
     location=[
         st.session_state.lat,
         st.session_state.lon
@@ -509,11 +501,13 @@ folium.Circle(
     fill_opacity=0.18,
     weight=2,
     tooltip=f"Raio estimado: {raio_metros} metros"
-).add_to(m)
+)
+
+circle.add_to(m)
 
 
 # ============================================================
-# GPS DENTRO DO MAPA
+# GPS
 # ============================================================
 
 LocateControl(
@@ -531,7 +525,16 @@ LocateControl(
 
 
 # ============================================================
-# INTEGRAÇÃO GPS → STREAMLIT
+# CORREÇÃO DO GPS
+#
+# O GPS agora:
+#
+# 1. Localiza o dispositivo.
+# 2. Move o mapa.
+# 3. Move o marcador do ninho.
+# 4. Move o círculo de forrageamento.
+# 5. Mantém o raio da espécie escolhida.
+#
 # ============================================================
 
 map_name = m.get_name()
@@ -539,9 +542,13 @@ map_name = m.get_name()
 gps_bridge = Element(
     f"""
     <script>
+
     (function() {{
 
         var map = {map_name};
+
+        var gpsMarker = null;
+        var gpsCircle = null;
 
         map.on('locationfound', function(e) {{
 
@@ -549,32 +556,104 @@ gps_bridge = Element(
                 return;
             }}
 
+            var lat = e.latlng.lat;
+            var lon = e.latlng.lng;
+
+            /*
+             * Move a câmera para o GPS.
+             */
             map.setView(
-                [e.latlng.lat, e.latlng.lng],
+                [lat, lon],
                 17,
                 {{ animate: true }}
             );
 
+
+            /*
+             * Remove marcador GPS anterior.
+             */
+            if (gpsMarker) {{
+                map.removeLayer(gpsMarker);
+            }}
+
+
+            /*
+             * Remove círculo GPS anterior.
+             */
+            if (gpsCircle) {{
+                map.removeLayer(gpsCircle);
+            }}
+
+
+            /*
+             * Cria novo marcador.
+             */
+            gpsMarker = L.marker(
+                [lat, lon],
+                {{
+                    title: "Localização atual"
+                }}
+            ).addTo(map);
+
+
+            gpsMarker.bindTooltip(
+                "🐝 Local do ninho"
+            );
+
+
+            /*
+             * Cria o círculo usando
+             * o raio da espécie escolhida.
+             */
+            gpsCircle = L.circle(
+                [lat, lon],
+                {{
+                    radius: {raio_metros},
+                    color: "#e0a100",
+                    fillColor: "#f5c542",
+                    fillOpacity: 0.18,
+                    weight: 2
+                }}
+            ).addTo(map);
+
+
+            gpsCircle.bindTooltip(
+                "Raio estimado: {raio_metros} metros"
+            );
+
+
+            /*
+             * Tenta informar ao Streamlit
+             * a nova posição.
+             *
+             * O clique abaixo também faz
+             * o st_folium reconhecer a posição.
+             */
             setTimeout(function() {{
 
-                map.fire('click', {{
-                    latlng: e.latlng
-                }});
+                map.fire(
+                    'click',
+                    {{
+                        latlng: e.latlng
+                    }}
+                );
 
-            }}, 250);
+            }}, 300);
 
         }});
+
 
         map.on('locationerror', function(e) {{
 
             console.warn(
-                'Não foi possível obter a localização:',
+                "Não foi possível obter a localização:",
                 e.message
             );
 
         }});
 
     }})();
+
     </script>
     """
 )
@@ -687,6 +766,10 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
+# ============================================================
+# PIX
+# ============================================================
 
 st.markdown("### 💚 Contribuição via Pix")
 
