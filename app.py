@@ -1,8 +1,12 @@
 import streamlit as st
 import folium
+
+from folium.plugins import LocateControl
 from streamlit_folium import st_folium
-from streamlit_geolocation import streamlit_geolocation
+
+from branca.element import Element
 from geopy.geocoders import Nominatim
+
 import math
 
 
@@ -156,42 +160,10 @@ if "lon" not in st.session_state:
 
 
 # ============================================================
-# GPS
+# BUSCA POR ENDEREÇO
 # ============================================================
 
 st.markdown("### 📍 Localização do ninho")
-
-st.caption(
-    "Use o botão abaixo para usar a localização atual do dispositivo."
-)
-
-localizacao = streamlit_geolocation()
-
-if (
-    isinstance(localizacao, dict)
-    and localizacao.get("latitude") is not None
-    and localizacao.get("longitude") is not None
-):
-
-    gps_lat = float(localizacao["latitude"])
-    gps_lon = float(localizacao["longitude"])
-
-    # Evita ficar atualizando o ninho continuamente
-    # se o componente retornar a mesma posição.
-    diferenca_lat = abs(gps_lat - st.session_state.lat)
-    diferenca_lon = abs(gps_lon - st.session_state.lon)
-
-    if diferenca_lat > 0.000001 or diferenca_lon > 0.000001:
-
-        st.session_state.lat = gps_lat
-        st.session_state.lon = gps_lon
-
-        st.rerun()
-
-
-# ============================================================
-# BUSCA POR ENDEREÇO
-# ============================================================
 
 endereco = st.text_input(
     "Pesquisar endereço",
@@ -281,7 +253,7 @@ m = folium.Map(
 
 
 # ============================================================
-# SATÉLITE
+# CAMADA SATÉLITE
 # ============================================================
 
 folium.TileLayer(
@@ -297,7 +269,7 @@ folium.TileLayer(
 
 
 # ============================================================
-# MAPA NORMAL
+# CAMADA MAPA NORMAL
 # ============================================================
 
 folium.TileLayer(
@@ -312,7 +284,7 @@ folium.TileLayer(
 # MARCADOR DO NINHO
 # ============================================================
 
-folium.Marker(
+marcador_ninho = folium.Marker(
     location=[
         st.session_state.lat,
         st.session_state.lon
@@ -327,14 +299,16 @@ folium.Marker(
         color="green",
         icon="home"
     )
-).add_to(m)
+)
+
+marcador_ninho.add_to(m)
 
 
 # ============================================================
 # CÍRCULO DE FORRAGEAMENTO
 # ============================================================
 
-folium.Circle(
+circulo_ninho = folium.Circle(
     location=[
         st.session_state.lat,
         st.session_state.lon
@@ -346,6 +320,26 @@ folium.Circle(
     fill_opacity=0.20,
     weight=2,
     tooltip=f"Raio estimado: {raio_metros} metros"
+)
+
+circulo_ninho.add_to(m)
+
+
+# ============================================================
+# CONTROLE GPS DENTRO DO MAPA
+# ============================================================
+
+LocateControl(
+    auto_start=False,
+    flyTo=True,
+    keepCurrentZoomLevel=False,
+    drawCircle=False,
+    showPopup=False,
+    locateOptions={
+        "enableHighAccuracy": True,
+        "maximumAge": 0,
+        "timeout": 10000
+    }
 ).add_to(m)
 
 
@@ -357,7 +351,88 @@ folium.LayerControl().add_to(m)
 
 
 # ============================================================
-# MAPA
+# JAVASCRIPT DO GPS
+# ============================================================
+
+map_name = m.get_name()
+marker_name = marcador_ninho.get_name()
+circle_name = circulo_ninho.get_name()
+
+gps_script = f"""
+<script>
+
+(function() {{
+
+    var mapa = {map_name};
+    var marcador = {marker_name};
+    var circulo = {circle_name};
+
+    if (!mapa) {{
+        return;
+    }}
+
+    /*
+     * O evento "locationfound" é disparado pelo LocateControl
+     * quando o navegador encontra a posição do dispositivo.
+     *
+     * IMPORTANTE:
+     * Não usamos o "center" do mapa.
+     *
+     * Assim, arrastar o mapa não altera o ninho.
+     */
+
+    mapa.off('locationfound');
+
+    mapa.on('locationfound', function(e) {{
+
+        var latitude = e.latlng.lat;
+        var longitude = e.latlng.lng;
+
+        /*
+         * Move o marcador do ninho.
+         */
+
+        if (marcador) {{
+            marcador.setLatLng([
+                latitude,
+                longitude
+            ]);
+        }}
+
+        /*
+         * Move o círculo amarelo.
+         */
+
+        if (circulo) {{
+            circulo.setLatLng([
+                latitude,
+                longitude
+            ]);
+        }}
+
+        /*
+         * Mantém o mapa centralizado na localização encontrada.
+         */
+
+        mapa.setView(
+            [latitude, longitude],
+            mapa.getZoom()
+        );
+
+    }});
+
+}})();
+
+</script>
+"""
+
+m.get_root().html.add_child(
+    Element(gps_script)
+)
+
+
+# ============================================================
+# EXIBIÇÃO DO MAPA
 # ============================================================
 
 map_data = st_folium(
@@ -372,18 +447,6 @@ map_data = st_folium(
 # ============================================================
 # CLIQUE NO MAPA
 # ============================================================
-
-# SOMENTE O CLIQUE altera a posição do ninho.
-#
-# Arrastar o mapa:
-#    NÃO altera o ninho.
-#
-# Zoom:
-#    NÃO altera o ninho.
-#
-# GPS:
-#    É tratado separadamente acima.
-
 
 if map_data and map_data.get("last_clicked"):
 
@@ -459,8 +522,7 @@ st.success(
     """
     **Como usar:**
 
-    📍 Use o botão de localização para posicionar o ninho
-    na localização atual do dispositivo.
+    📍 Use o botão GPS dentro do mapa para localizar o dispositivo.
 
     🖱️ Clique diretamente no mapa para escolher manualmente
     o local do ninho.
