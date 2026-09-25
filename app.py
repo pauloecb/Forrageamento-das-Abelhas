@@ -1,8 +1,7 @@
 import streamlit as st
 import folium
 from folium.plugins import LocateControl
-from branca.element import Element
-from streamlit_folium import st_folium
+from st_folium import st_folium
 from geopy.geocoders import Nominatim
 import math
 
@@ -194,7 +193,7 @@ especies_abelhas = {
 
 
 # ============================================================
-# SELEÇÃO DA ESPÉCIE
+# ESCOLHA DA ESPÉCIE
 # ============================================================
 
 st.markdown(
@@ -224,7 +223,7 @@ raio_metros = especies_abelhas[especie_selecionada]
 
 
 # ============================================================
-# NOME POPULAR / CIENTÍFICO
+# NOMES
 # ============================================================
 
 partes = especie_selecionada.split("(", 1)
@@ -246,7 +245,7 @@ st.markdown(
 
 
 # ============================================================
-# CÁLCULO DA ÁREA
+# ÁREA
 # ============================================================
 
 area_km2 = math.pi * (raio_metros / 1000) ** 2
@@ -303,7 +302,7 @@ with col3:
 
 
 # ============================================================
-# LOCALIZAÇÃO INICIAL
+# LOCALIZAÇÃO
 # ============================================================
 
 if "lat" not in st.session_state:
@@ -312,10 +311,6 @@ if "lat" not in st.session_state:
 if "lon" not in st.session_state:
     st.session_state.lon = -43.1729
 
-
-# ============================================================
-# LOCALIZAÇÃO DO NINHO
-# ============================================================
 
 st.markdown(
     '<div class="section-title">📍 Localização do ninho</div>',
@@ -329,7 +324,7 @@ st.caption(
 
 
 # ============================================================
-# PESQUISA DE ENDEREÇO
+# BUSCA POR ENDEREÇO
 # ============================================================
 
 with st.form("form_endereco"):
@@ -429,10 +424,6 @@ st.markdown(
 )
 
 
-# ------------------------------------------------------------
-# CRIAÇÃO DO MAPA
-# ------------------------------------------------------------
-
 m = folium.Map(
     location=[
         st.session_state.lat,
@@ -445,7 +436,7 @@ m = folium.Map(
 
 
 # ============================================================
-# CAMADA DE SATÉLITE
+# SATÉLITE
 # ============================================================
 
 folium.TileLayer(
@@ -462,7 +453,7 @@ folium.TileLayer(
 
 
 # ============================================================
-# CAMADA DE MAPA NORMAL
+# MAPA NORMAL
 # ============================================================
 
 folium.TileLayer(
@@ -475,10 +466,10 @@ folium.TileLayer(
 
 
 # ============================================================
-# MARCADOR DO NINHO
+# MARCADOR
 # ============================================================
 
-marcador_ninho = folium.Marker(
+folium.Marker(
     [
         st.session_state.lat,
         st.session_state.lon
@@ -493,16 +484,14 @@ marcador_ninho = folium.Marker(
         color="orange",
         icon="home"
     )
-)
-
-marcador_ninho.add_to(m)
+).add_to(m)
 
 
 # ============================================================
-# CÍRCULO DE FORRAGEAMENTO
+# CÍRCULO
 # ============================================================
 
-circulo_forrageamento = folium.Circle(
+folium.Circle(
     location=[
         st.session_state.lat,
         st.session_state.lon
@@ -516,9 +505,7 @@ circulo_forrageamento = folium.Circle(
     tooltip=(
         f"Raio estimado: {raio_metros} metros"
     )
-)
-
-circulo_forrageamento.add_to(m)
+).add_to(m)
 
 
 # ============================================================
@@ -540,7 +527,7 @@ LocateControl(
 
 
 # ============================================================
-# CONTROLE DE CAMADAS
+# CAMADAS
 # ============================================================
 
 folium.LayerControl(
@@ -549,91 +536,16 @@ folium.LayerControl(
 
 
 # ============================================================
-# ATUALIZAÇÃO INSTANTÂNEA DO GPS
+# MAPA → STREAMLIT
 # ============================================================
 #
-# Aqui está a principal alteração.
+# AGORA o "center" é recebido novamente.
 #
-# O evento "locatelocationfound" acontece diretamente no
-# navegador quando o GPS encontra a posição.
+# Quando o GPS movimentar o mapa para a posição encontrada,
+# o centro muda e o Streamlit recebe essa nova posição.
 #
-# Em vez de esperar o Streamlit reconstruir o mapa,
-# movemos imediatamente:
-#
-#   1. o marcador do ninho
-#   2. o círculo de forrageamento
-#   3. a câmera do mapa
-#
-# O Streamlit continua recebendo os dados normalmente depois.
-# ============================================================
-
-map_name = m.get_name()
-marker_name = marcador_ninho.get_name()
-circle_name = circulo_forrageamento.get_name()
-
-gps_script = f"""
-<script>
-(function() {{
-
-    var map = {map_name};
-    var marker = {marker_name};
-    var circle = {circle_name};
-
-    if (!map || !marker || !circle) {{
-        return;
-    }}
-
-    /*
-     * Quando o GPS encontrar a posição:
-     * atualiza imediatamente o marcador e o círculo.
-     */
-    map.on("locatelocationfound", function(e) {{
-
-        if (!e || !e.latlng) {{
-            return;
-        }}
-
-        /*
-         * Move o marcador imediatamente.
-         */
-        marker.setLatLng(e.latlng);
-
-        /*
-         * Move o círculo imediatamente.
-         */
-        circle.setLatLng(e.latlng);
-
-        /*
-         * Centraliza o mapa na posição encontrada.
-         */
-        map.flyTo(
-            e.latlng,
-            map.getZoom(),
-            {{
-                animate: true,
-                duration: 0.8
-            }}
-        );
-
-    }});
-
-}})();
-</script>
-"""
-
-m.get_root().html.add_child(
-    Element(gps_script)
-)
-
-
-# ============================================================
-# ENVIO DO MAPA PARA O STREAMLIT
-# ============================================================
-#
-# Não usamos mais "center" como posição do ninho.
-#
-# O centro do mapa é apenas a câmera.
-# O ninho é controlado separadamente.
+# O "last_clicked" continua permitindo escolher manualmente
+# o local do ninho.
 # ============================================================
 
 map_data = st_folium(
@@ -642,17 +554,57 @@ map_data = st_folium(
     height=580,
     key="meu_mapa_abelhas",
     returned_objects=[
+        "center",
         "last_clicked"
     ]
 )
 
 
 # ============================================================
-# CLIQUE NO MAPA
+# PROCESSAMENTO DA POSIÇÃO
 # ============================================================
-#
-# Quando o usuário clicar no mapa, esse ponto passa a ser
-# o novo local do ninho.
+
+if map_data:
+
+    centro = map_data.get("center")
+
+    if centro:
+
+        centro_lat = centro.get("lat")
+        centro_lon = centro.get("lng")
+
+        if (
+            centro_lat is not None
+            and centro_lon is not None
+        ):
+
+            # Só considera uma mudança significativa.
+            #
+            # Isso evita pequenos movimentos causados pelo
+            # próprio mapa gerarem vários reruns.
+
+            mudou = (
+                abs(
+                    centro_lat -
+                    st.session_state.lat
+                ) > 0.00005
+                or
+                abs(
+                    centro_lon -
+                    st.session_state.lon
+                ) > 0.00005
+            )
+
+            if mudou:
+
+                st.session_state.lat = centro_lat
+                st.session_state.lon = centro_lon
+
+                st.rerun()
+
+
+# ============================================================
+# CLIQUE MANUAL NO MAPA
 # ============================================================
 
 if map_data:
@@ -669,7 +621,7 @@ if map_data:
             and nova_lon is not None
         ):
 
-            if (
+            mudou = (
                 abs(
                     nova_lat -
                     st.session_state.lat
@@ -679,7 +631,9 @@ if map_data:
                     nova_lon -
                     st.session_state.lon
                 ) > 0.000001
-            ):
+            )
+
+            if mudou:
 
                 st.session_state.lat = nova_lat
                 st.session_state.lon = nova_lon
@@ -716,7 +670,7 @@ circular.
 
 
 # ============================================================
-# APOIO AO PROJETO
+# APOIO
 # ============================================================
 
 st.markdown(
@@ -750,9 +704,7 @@ st.markdown(
 # PIX
 # ============================================================
 
-st.markdown(
-    "### 💚 Contribuição via Pix"
-)
+st.markdown("### 💚 Contribuição via Pix")
 
 st.write(
     "**Favorecido:** Paulo Eduardo Castelo Branco Geraldo"
@@ -762,9 +714,7 @@ st.write(
     "**Banco:** Nubank"
 )
 
-st.write(
-    "**Chave Pix:**"
-)
+st.write("**Chave Pix:**")
 
 st.code(
     "02450e96-4a41-4b62-8275-0b741c23a42b",
