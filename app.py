@@ -8,7 +8,7 @@ import math
 
 
 # ============================================================
-# CONFIGURAÇÃO DA PÁGINA
+# CONFIGURAÇÃO
 # ============================================================
 
 st.set_page_config(
@@ -19,335 +19,200 @@ st.set_page_config(
 
 
 # ============================================================
-# ESTILO VISUAL
-# ============================================================
-
-st.markdown("""
-<style>
-
-.stApp {
-    background-color: #fafaf7;
-}
-
-.block-container {
-    max-width: 1100px;
-    padding-top: 2rem;
-    padding-bottom: 3rem;
-}
-
-
-/* TÍTULO PRINCIPAL */
-
-.main-title {
-    font-size: 2.4rem;
-    font-weight: 800;
-    color: #263238;
-    margin-bottom: 0.2rem;
-}
-
-.main-subtitle {
-    color: #607d8b;
-    font-size: 1.05rem;
-    margin-bottom: 1.8rem;
-}
-
-
-/* TÍTULOS DE SEÇÃO */
-
-.section-title {
-    font-size: 1.35rem;
-    font-weight: 750;
-    color: #37474f;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-}
-
-
-/* MÉTRICAS */
-
-.metric-card {
-    background-color: white;
-    border-radius: 14px;
-    padding: 17px;
-    border: 1px solid #e5e5e5;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    min-height: 105px;
-}
-
-.metric-icon {
-    font-size: 1.4rem;
-}
-
-.metric-label {
-    color: #78909c;
-    font-size: 0.82rem;
-    margin-top: 5px;
-}
-
-.metric-value {
-    font-size: 1.25rem;
-    font-weight: 800;
-    color: #37474f;
-    margin-top: 3px;
-}
-
-
-/* CAIXAS INFORMATIVAS */
-
-.info-box {
-    background-color: #eef7ff;
-    border-left: 5px solid #2196f3;
-    padding: 14px 16px;
-    border-radius: 10px;
-    margin: 15px 0;
-    color: #37474f;
-}
-
-.support-box {
-    background: linear-gradient(135deg, #fff8e1, #fffdf4);
-    border: 1px solid #f0d77a;
-    padding: 18px;
-    border-radius: 14px;
-    margin-top: 25px;
-}
-
-
-/* LEGENDA DO MAPA */
-
-.map-legend {
-    background: white;
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid #dddddd;
-    margin-top: 10px;
-    font-size: 0.88rem;
-    color: #455a64;
-}
-
-
-/* RODAPÉ */
-
-.footer {
-    text-align: center;
-    color: #90a4ae;
-    font-size: 0.82rem;
-    margin-top: 35px;
-    padding-top: 15px;
-    border-top: 1px solid #eeeeee;
-}
-
-
-/* BOTÕES */
-
-.stButton > button {
-    border-radius: 10px;
-    font-weight: 650;
-}
-
-
-/* SELECTBOX */
-
-div[data-baseweb="select"] > div {
-    border-radius: 10px;
-}
-
-
-/* INPUTS */
-
-.stTextInput input,
-.stNumberInput input {
-    border-radius: 10px;
-}
-
-
-/* CONTROLE GPS */
-
-.leaflet-control-locate a {
-    background-color: white !important;
-    color: #37474f !important;
-    font-size: 19px !important;
-}
-
-.leaflet-control-locate a:hover {
-    background-color: #f5f5f5 !important;
-}
-
-
-/* CONTROLES DO MAPA */
-
-.leaflet-control-zoom a {
-    border-radius: 8px !important;
-}
-
-.leaflet-control-layers {
-    border-radius: 8px !important;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# ============================================================
-# CABEÇALHO
+# CSS
 # ============================================================
 
 st.markdown(
-    '<div class="main-title">🌿 Rastreador de Forrageamento</div>',
-    unsafe_allow_html=True
-)
+    """
+    <style>
 
-st.markdown(
-    '<div class="main-subtitle">'
-    'Descubra o raio de alcance estimado das abelhas nativas '
-    'a partir da localização do seu ninho.'
-    '</div>',
+    .stApp {
+        background-color: #f7f8fa;
+    }
+
+    .block-container {
+        max-width: 1050px;
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+    }
+
+    .main-title {
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: #202124;
+        margin-bottom: 0.2rem;
+    }
+
+    .main-subtitle {
+        font-size: 1.05rem;
+        color: #6b7280;
+        margin-bottom: 1.8rem;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 750;
+        color: #202124;
+        margin-top: 1.5rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .metric-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 1rem;
+        min-height: 105px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .metric-icon {
+        font-size: 1.3rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .metric-label {
+        font-size: 0.82rem;
+        color: #6b7280;
+    }
+
+    .metric-value {
+        font-size: 1.25rem;
+        font-weight: 750;
+        color: #202124;
+        margin-top: 0.15rem;
+    }
+
+    .footer {
+        text-align: center;
+        color: #9ca3af;
+        font-size: 0.8rem;
+        margin-top: 2.5rem;
+    }
+
+    /* Botões */
+    .stButton > button {
+        border-radius: 10px;
+        font-weight: 600;
+    }
+
+    /* Inputs */
+    div[data-baseweb="input"] {
+        border-radius: 10px;
+    }
+
+    div[data-baseweb="select"] {
+        border-radius: 10px;
+    }
+
+    /* GPS / controles do Leaflet */
+    .leaflet-control-locate {
+        margin-top: 10px !important;
+    }
+
+    .leaflet-control-layers {
+        margin-top: 10px !important;
+    }
+
+    </style>
+    """,
     unsafe_allow_html=True
 )
 
 
 # ============================================================
-# BANCO DE ESPÉCIES
+# TÍTULO
+# ============================================================
+
+st.markdown(
+    '<div class="main-title">🐝 Rastreador de Abelhas</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="main-subtitle">Visualize a área potencial de forrageamento ao redor do seu meliponário.</div>',
+    unsafe_allow_html=True
+)
+
+
+# ============================================================
+# ESPÉCIES
 # ============================================================
 
 especies_abelhas = {
-
     "Arapuá/Irapuã (Trigona spinipes)": 1000,
-
     "Boca-de-Sapo (Partamona helleri)": 700,
-
     "Borá (Tetragona clavipes)": 1500,
-
     "Jataí-da-Terra (Paratrigona subnuda e Paratrigona lineata)": 500,
-
     "Jataí-Acriana (Tetragonisca weyrauchi)": 500,
-
     "Boiassu (Melipona interrupta)": 1500,
-
     "Bugia (Melipona mondury)": 1000,
-
     "Canudo (Scaptotrigona depilis)": 1500,
-
     "Guaraipo (Melipona bicolor)": 1000,
-
     "Guiruçu (Schwarziana quadripunctata)": 1000,
-
     "Iraí (Nannotrigona testaceicornis)": 500,
-
     "Jandaíra (Melipona subnitida)": 1000,
-
     "Jandaira-preta (Melipona mandacaia)": 1500,
-
     "Jataí (Tetragonisca angustula)": 500,
-
     "Lambe-olhos (Leurotrigona muelleri)": 300,
-
     "Mandaçaia (Melipona quadrifasciata)": 1500,
-
     "Mandaguari Amarela (Scaptotrigona xanthotricha)": 1500,
-
     "Mandaguari Preta (Scaptotrigona postica)": 1500,
-
     "Mano-Pé (Scaptotrigona bipunctata)": 1500,
-
     "Marmelada (Frieseomelitta varia)": 500,
-
     "Mirim-droryana (Plebeia droryana)": 400,
-
     "Mirim-emerina (Plebeia emerina)": 500,
-
     "Mirim-preguiça (Frieseomelitta varia)": 500,
-
     "Mirim-guaçu (Plebeia remota)": 700,
-
     "Mirim-saitá (Plebeia moureana)": 500,
-
     "Mombucão (Cephalotrigona capitata)": 1000,
-
     "Limão (Lestrimelitta limao)": 1000,
-
     "Rabo-de-tatu (Nannotrigona punctata)": 500,
-
     "Tiúba (Melipona fasciculata)": 1500,
-
     "Tubuna (Scaptotrigona bipunctata)": 1500,
-
     "Uruçu-amarela (Melipona rufiventris)": 1500,
-
     "Uruçu-cinzenta (Melipona fasciculata)": 1500,
-
     "Uruçu-caboclo (Melipona fuscopilosa)": 1700,
-
     "Uruçu-do-chão (Melipona capixaba)": 1500,
-
     "Uruçu-grandis / Uruçu-grande (Melipona grandis)": 2700,
-
     "Uruçu-nordestina (Melipona scutellaris)": 1500,
-
     "Uruçu-True / Amarela (Melipona flavolineata)": 1500
 }
 
 
 # ============================================================
-# FUNÇÕES AUXILIARES
-# ============================================================
-
-def extrair_nome_cientifico(nome):
-    inicio = nome.find("(")
-    fim = nome.rfind(")")
-
-    if inicio != -1 and fim != -1:
-        return nome[inicio + 1:fim]
-
-    return ""
-
-
-def extrair_nome_popular(nome):
-    inicio = nome.find("(")
-
-    if inicio != -1:
-        return nome[:inicio].strip()
-
-    return nome
-
-
-def calcular_area_km2(raio_metros):
-    raio_km = raio_metros / 1000
-    return math.pi * (raio_km ** 2)
-
-
-def formatar_area(area):
-    if area < 1:
-        return f"{area:.2f} km²"
-
-    return f"{area:.1f} km²"
-
-
-# ============================================================
-# 1 — ESCOLHA DA ESPÉCIE
+# SELEÇÃO DA ABELHA
 # ============================================================
 
 st.markdown(
-    '<div class="section-title">🐝 1. Escolha da espécie</div>',
+    '<div class="section-title">🐝 Escolha a espécie</div>',
     unsafe_allow_html=True
 )
 
-especie_escolhida = st.selectbox(
-    "Selecione a espécie:",
-    sorted(especies_abelhas.keys()),
-    label_visibility="collapsed"
+especie_selecionada = st.selectbox(
+    "Espécie da abelha",
+    list(especies_abelhas.keys()),
+    index=list(especies_abelhas.keys()).index(
+        "Jataí (Tetragonisca angustula)"
+    )
 )
 
-raio_metros = especies_abelhas[especie_escolhida]
-
-nome_popular = extrair_nome_popular(especie_escolhida)
-nome_cientifico = extrair_nome_cientifico(especie_escolhida)
-
-area_km2 = calcular_area_km2(raio_metros)
+raio_metros = especies_abelhas[especie_selecionada]
 
 
 # ============================================================
-# INFORMAÇÃO DA ESPÉCIE
+# INFORMAÇÕES DA ESPÉCIE
 # ============================================================
+
+partes = especie_selecionada.split("(", 1)
+
+nome_popular = partes[0].strip()
+
+if len(partes) > 1:
+    nome_cientifico = "(" + partes[1].strip()
+else:
+    nome_cientifico = ""
+
 
 st.markdown(
     f"""
@@ -359,31 +224,42 @@ st.markdown(
 
 
 # ============================================================
+# CÁLCULO DA ÁREA
+# ============================================================
+
+area_km2 = math.pi * (raio_metros / 1000) ** 2
+
+
+def formatar_area(area):
+    if area < 10:
+        return f"{area:.2f} km²"
+    else:
+        return f"{area:.1f} km²"
+
+
+# ============================================================
 # MÉTRICAS
 # ============================================================
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
-
     st.markdown(
         f"""
         <div class="metric-card">
-            <div class="metric-icon">🎯</div>
+            <div class="metric-icon">📏</div>
             <div class="metric-label">Raio estimado</div>
             <div class="metric-value">{raio_metros:,} m</div>
         </div>
-        """.replace(",", "."),
+        """,
         unsafe_allow_html=True
     )
 
-
 with col2:
-
     st.markdown(
         f"""
         <div class="metric-card">
-            <div class="metric-icon">🌿</div>
+            <div class="metric-icon">⭕</div>
             <div class="metric-label">Área circular</div>
             <div class="metric-value">{formatar_area(area_km2)}</div>
         </div>
@@ -391,36 +267,17 @@ with col2:
         unsafe_allow_html=True
     )
 
-
 with col3:
-
     st.markdown(
         """
         <div class="metric-card">
-            <div class="metric-icon">🏠</div>
+            <div class="metric-icon">🏡</div>
             <div class="metric-label">Referência</div>
             <div class="metric-value">Ninho</div>
         </div>
         """,
         unsafe_allow_html=True
     )
-
-
-# ============================================================
-# AVISO CIENTÍFICO
-# ============================================================
-
-st.markdown(
-    """
-    <div class="info-box">
-        🧭 <b>Importante:</b> o raio apresentado é uma estimativa
-        de referência. O alcance real pode variar conforme a espécie,
-        disponibilidade de recursos, clima, relevo e características
-        da colônia.
-    </div>
-    """,
-    unsafe_allow_html=True
-)
 
 
 # ============================================================
@@ -435,25 +292,17 @@ if "lon" not in st.session_state:
 
 
 # ============================================================
-# 2 — LOCALIZAÇÃO DO NINHO
+# LOCALIZAÇÃO DO NINHO
 # ============================================================
 
 st.markdown(
-    '<div class="section-title">📍 2. Localização do ninho</div>',
+    '<div class="section-title">📍 Localização do ninho</div>',
     unsafe_allow_html=True
 )
 
-st.markdown(
-    """
-    <div class="info-box">
-        🗺️ <b>Escolha a localização do ninho:</b><br><br>
-        • pesquise um endereço ou cidade abaixo;<br>
-        • toque diretamente no ponto desejado no mapa;<br>
-        • ou use o botão ⦿ no canto superior direito do mapa
-        para usar o GPS do dispositivo.
-    </div>
-    """,
-    unsafe_allow_html=True
+st.caption(
+    "Você pode pesquisar um endereço, usar o GPS dentro do mapa "
+    "ou simplesmente clicar diretamente no local do ninho."
 )
 
 
@@ -461,59 +310,50 @@ st.markdown(
 # BUSCA POR ENDEREÇO
 # ============================================================
 
-geolocator = Nominatim(
-    user_agent="rastreador_abelhas_app"
-)
-
-with st.form("form_busca_endereco"):
-
-    endereco_busca = st.text_input(
-        "🔍 Pesquisar endereço ou cidade",
-        placeholder="Ex.: Seropédica, RJ"
+with st.form("form_endereco"):
+    endereco = st.text_input(
+        "Pesquisar endereço",
+        placeholder="Digite rua, bairro, cidade ou ponto de referência"
     )
 
-    buscar = st.form_submit_button(
-        "🔎 Encontrar localização",
+    pesquisar = st.form_submit_button(
+        "🔎 Localizar endereço",
         use_container_width=True
     )
 
+if pesquisar and endereco:
 
-if buscar:
+    try:
+        geolocator = Nominatim(
+            user_agent="rastreador_abelhas"
+        )
 
-    if endereco_busca.strip():
+        local = geolocator.geocode(
+            endereco,
+            timeout=10
+        )
 
-        try:
+        if local:
 
-            loc = geolocator.geocode(endereco_busca)
+            st.session_state.lat = local.latitude
+            st.session_state.lon = local.longitude
 
-            if loc:
-
-                st.session_state.lat = loc.latitude
-                st.session_state.lon = loc.longitude
-
-                st.success(
-                    f"📍 Localização encontrada: {loc.address}"
-                )
-
-                st.rerun()
-
-            else:
-
-                st.error(
-                    "Não encontrei esse endereço. "
-                    "Tente informar também a cidade ou o estado."
-                )
-
-        except Exception:
-
-            st.error(
-                "Não foi possível realizar a busca agora."
+            st.success(
+                f"Local encontrado: {local.address}"
             )
 
-    else:
+            st.rerun()
 
-        st.warning(
-            "Digite um endereço ou cidade para pesquisar."
+        else:
+
+            st.warning(
+                "Não foi possível localizar esse endereço."
+            )
+
+    except Exception as e:
+
+        st.error(
+            "Não foi possível realizar a busca do endereço."
         )
 
 
@@ -521,89 +361,62 @@ if buscar:
 # COORDENADAS MANUAIS
 # ============================================================
 
-with st.expander("⚙️ Opções avançadas — coordenadas"):
+with st.expander("⚙️ Inserir coordenadas manualmente"):
 
-    col_lat, col_lon = st.columns(2)
+    col1, col2 = st.columns(2)
 
-    with col_lat:
-
-        lat_inicial = st.number_input(
+    with col1:
+        nova_lat = st.number_input(
             "Latitude",
             value=float(st.session_state.lat),
             format="%.6f"
         )
 
-    with col_lon:
-
-        lon_inicial = st.number_input(
+    with col2:
+        nova_lon = st.number_input(
             "Longitude",
             value=float(st.session_state.lon),
             format="%.6f"
         )
 
-    if (
-        lat_inicial != st.session_state.lat
-        or lon_inicial != st.session_state.lon
+    if st.button(
+        "📍 Aplicar coordenadas",
+        use_container_width=True
     ):
 
-        st.session_state.lat = lat_inicial
-        st.session_state.lon = lon_inicial
+        st.session_state.lat = nova_lat
+        st.session_state.lon = nova_lon
 
         st.rerun()
-
-
-# ============================================================
-# 3 — MAPA
-# ============================================================
-
-st.markdown(
-    '<div class="section-title">🗺️ 3. Área de forrageamento</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    """
-    <div style="
-        color:#607d8b;
-        margin-bottom:10px;
-        font-size:0.95rem;
-    ">
-        💡 Toque em qualquer ponto do mapa para posicionar o ninho.
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-
-centro_mapa = [
-    st.session_state.lat,
-    st.session_state.lon
-]
 
 
 # ============================================================
 # MAPA
 # ============================================================
 
-# SATÉLITE É AGORA O MAPA PADRÃO
+st.markdown(
+    '<div class="section-title">🗺️ Área de forrageamento</div>',
+    unsafe_allow_html=True
+)
+
+
 m = folium.Map(
-    location=centro_mapa,
-    zoom_start=15,
+    location=[
+        st.session_state.lat,
+        st.session_state.lon
+    ],
+    zoom_start=14,
     tiles=None,
     control_scale=True
 )
 
 
 # ============================================================
-# SATÉLITE — CAMADA PADRÃO
+# CAMADA DE SATÉLITE — PADRÃO
 # ============================================================
 
 folium.TileLayer(
-    tiles=(
-        "https://server.arcgisonline.com/"
-        "ArcGIS/rest/services/World_Imagery/"
-        "MapServer/tile/{z}/{y}/{x}"
-    ),
+    tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     attr="Esri",
     name="🛰️ Satélite",
     overlay=False,
@@ -613,7 +426,7 @@ folium.TileLayer(
 
 
 # ============================================================
-# MAPA CLARO
+# CAMADA DE MAPA
 # ============================================================
 
 folium.TileLayer(
@@ -630,24 +443,19 @@ folium.TileLayer(
 # ============================================================
 
 folium.Marker(
-    location=centro_mapa,
-
-    popup=folium.Popup(
-        f"""
-        <div style="text-align:center;">
-            <b>🏠 Ninho</b><br>
-            {nome_popular}
-        </div>
-        """,
-        max_width=250
-    ),
-
-    tooltip="🏠 Localização do ninho",
-
+    [
+        st.session_state.lat,
+        st.session_state.lon
+    ],
+    tooltip="🐝 Local do ninho",
+    popup=f"""
+    <b>🐝 Ninho</b><br>
+    {nome_popular}<br>
+    Raio estimado: {raio_metros} metros
+    """,
     icon=folium.Icon(
-        color="green",
-        icon="home",
-        prefix="fa"
+        color="orange",
+        icon="home"
     )
 ).add_to(m)
 
@@ -657,22 +465,17 @@ folium.Marker(
 # ============================================================
 
 folium.Circle(
-    location=centro_mapa,
+    location=[
+        st.session_state.lat,
+        st.session_state.lon
+    ],
     radius=raio_metros,
-    color="#f4c20d",
-    weight=3,
+    color="#e0a100",
     fill=True,
-    fill_color="#ff9800",
-    fill_opacity=0.25,
-
-    popup=folium.Popup(
-        f"""
-        <b>{nome_popular}</b><br>
-        Raio estimado: {raio_metros} metros<br>
-        Área aproximada: {formatar_area(area_km2)}
-        """,
-        max_width=280
-    )
+    fill_color="#f5c542",
+    fill_opacity=0.18,
+    weight=2,
+    tooltip=f"Raio estimado: {raio_metros} metros"
 ).add_to(m)
 
 
@@ -686,7 +489,6 @@ LocateControl(
     keepCurrentZoomLevel=False,
     drawCircle=False,
     showPopup=False,
-
     locateOptions={
         "enableHighAccuracy": True,
         "maximumAge": 0,
@@ -696,7 +498,7 @@ LocateControl(
 
 
 # ============================================================
-# INTEGRAÇÃO GPS → NINHO
+# PONTE ENTRE GPS E STREAMLIT
 # ============================================================
 
 map_name = m.get_name()
@@ -704,7 +506,6 @@ map_name = m.get_name()
 gps_bridge = Element(
     f"""
     <script>
-
     (function() {{
 
         var map = {map_name};
@@ -718,9 +519,7 @@ gps_bridge = Element(
             map.setView(
                 [e.latlng.lat, e.latlng.lng],
                 17,
-                {{
-                    animate: true
-                }}
+                {{ animate: true }}
             );
 
             setTimeout(function() {{
@@ -743,7 +542,6 @@ gps_bridge = Element(
         }});
 
     }})();
-
     </script>
     """
 )
@@ -756,34 +554,15 @@ m.get_root().html.add_child(gps_bridge)
 # ============================================================
 
 folium.LayerControl(
-    position="topright",
-    collapsed=True
+    position="topright"
 ).add_to(m)
-
-
-# ============================================================
-# LEGENDA
-# ============================================================
-
-st.markdown(
-    """
-    <div class="map-legend">
-        🏠 <b>Marcador:</b> localização do ninho
-        &nbsp;&nbsp;•&nbsp;&nbsp;
-        🟡 <b>Círculo:</b> raio estimado
-        &nbsp;&nbsp;•&nbsp;&nbsp;
-        ⦿ <b>GPS:</b> localização atual
-    </div>
-    """,
-    unsafe_allow_html=True
-)
 
 
 # ============================================================
 # EXIBIÇÃO DO MAPA
 # ============================================================
 
-output = st_folium(
+map_data = st_folium(
     m,
     width=700,
     height=580,
@@ -795,24 +574,31 @@ output = st_folium(
 # CLIQUE NO MAPA
 # ============================================================
 
-if output and output.get("last_clicked"):
+if map_data:
 
-    clicked_lat = output["last_clicked"]["lat"]
-    clicked_lon = output["last_clicked"]["lng"]
+    clicked = map_data.get("last_clicked")
 
-    if (
-        clicked_lat != st.session_state.lat
-        or clicked_lon != st.session_state.lon
-    ):
+    if clicked:
 
-        st.session_state.lat = clicked_lat
-        st.session_state.lon = clicked_lon
+        nova_lat = clicked.get("lat")
+        nova_lon = clicked.get("lng")
 
-        st.rerun()
+        if nova_lat is not None and nova_lon is not None:
+
+            if (
+                abs(nova_lat - st.session_state.lat) > 0.000001
+                or
+                abs(nova_lon - st.session_state.lon) > 0.000001
+            ):
+
+                st.session_state.lat = nova_lat
+                st.session_state.lon = nova_lon
+
+                st.rerun()
 
 
 # ============================================================
-# INFORMAÇÕES SOBRE A ÁREA
+# SOBRE ESTA ÁREA
 # ============================================================
 
 st.markdown(
@@ -820,74 +606,42 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown(
+st.info(
     f"""
-    <div class="info-box">
+A área representada possui aproximadamente **{formatar_area(area_km2)}**
+em torno do ninho, considerando um raio estimado de **{raio_metros} metros**.
 
-        A área representada possui aproximadamente
-        <b>{formatar_area(area_km2)}</b> em torno do ninho,
-        considerando um raio de <b>{raio_metros} metros</b>.
+Essa representação pode ajudar o meliponicultor a visualizar o entorno
+do meliponário e identificar áreas que podem fazer parte da região
+potencialmente explorada pela colônia em busca de néctar, pólen,
+resinas e outros recursos.
 
-        <br><br>
-
-        Essa representação pode ajudar o meliponicultor a
-        visualizar quais áreas do entorno do meliponário podem
-        fazer parte da região potencialmente explorada pela
-        colônia em busca de néctar, pólen, resinas e outros recursos.
-
-    </div>
-    """,
-    unsafe_allow_html=True
+**Importante:** o círculo é uma representação geométrica baseada no
+raio estimado da espécie. Ele não significa que a colônia encontrará
+recursos em toda essa área nem que o voo real será perfeitamente
+circular.
+"""
 )
 
 
 # ============================================================
-# ESPÉCIE NÃO ENCONTRADA
-# ============================================================
-
-with st.expander("🐝 Não encontrou sua espécie?"):
-
-    st.markdown(
-        """
-        Se você conhece uma espécie de abelha nativa que ainda
-        não aparece na lista, pode enviar a sugestão para que
-        ela seja analisada e eventualmente adicionada ao banco
-        de dados.
-        """
-    )
-
-    st.markdown(
-        """
-        📧 **E-mail:**
-        [paulo_eduardo_cb@hotmail.com](mailto:paulo_eduardo_cb@hotmail.com)
-        """
-    )
-
-
-# ============================================================
-# APOIO AO PROJETO
+# AJUDE A MELHORAR
 # ============================================================
 
 st.markdown(
-    """
-    <div class="support-box">
-
-        <b>🐝 Ajude a melhorar o projeto</b>
-
-        <br><br>
-
-        Este projeto foi criado para auxiliar meliponicultores
-        a visualizar o potencial de forrageamento das abelhas
-        nativas e entender melhor a paisagem ao redor dos ninhos.
-
-        <br><br>
-
-        Quanto mais espécies, nomes populares e informações
-        forem adicionados, mais útil a ferramenta poderá se tornar.
-
-    </div>
-    """,
+    '<div class="section-title">🐝 Ajude a melhorar o projeto</div>',
     unsafe_allow_html=True
+)
+
+st.success(
+    """
+Este projeto foi criado para auxiliar meliponicultores a visualizar
+o potencial de forrageamento das abelhas nativas e entender melhor
+a paisagem ao redor dos ninhos.
+
+Quanto mais espécies, nomes populares e informações forem adicionados,
+mais útil a ferramenta poderá se tornar.
+"""
 )
 
 
@@ -898,8 +652,7 @@ st.markdown(
 st.markdown(
     """
     <div class="footer">
-        🌿 Rastreador de Forrageamento de Abelhas Nativas<br>
-        Ferramenta de referência para meliponicultura
+        Rastreador de Abelhas 🐝 · Ferramenta experimental para meliponicultura
     </div>
     """,
     unsafe_allow_html=True
