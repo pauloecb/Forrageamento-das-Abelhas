@@ -1,7 +1,7 @@
 import streamlit as st
 import folium
 from folium.plugins import LocateControl
-from st_folium import st_folium
+from streamlit_folium import st_folium
 from geopy.geocoders import Nominatim
 import math
 
