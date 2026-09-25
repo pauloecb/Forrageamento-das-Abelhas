@@ -1,101 +1,41 @@
 import streamlit as st
 import folium
-
-from folium.plugins import LocateControl
 from streamlit_folium import st_folium
-
-from branca.element import Element
 from geopy.geocoders import Nominatim
+from streamlit_geolocation import streamlit_geolocation
 
-import math
+# Configuração da página do app
+st.set_page_config(page_title="Rastreador de Abelhas", page_icon="🐝", layout="centered")
 
-
-# ============================================================
-# CONFIGURAÇÃO
-# ============================================================
-
-st.set_page_config(
-    page_title="Rastreador de Abelhas",
-    page_icon="🐝",
-    layout="wide"
-)
-
-
-# ============================================================
-# ESTILO
-# ============================================================
-
-st.markdown("""
-<style>
-
-    .main {
-        background-color: #f4f4f4;
-    }
-
-    .block-container {
-        padding-top: 1.5rem;
-        padding-bottom: 2rem;
-    }
-
-    .titulo {
-        font-size: 2.2rem;
-        font-weight: 700;
-        color: #222;
-        margin-bottom: 0.2rem;
-    }
-
-    .subtitulo {
-        color: #666;
-        font-size: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .pix-card {
-        background: white;
-        padding: 18px;
-        border-radius: 12px;
-        border: 1px solid #ddd;
-        margin-top: 20px;
-    }
-
-    .rodape {
-        text-align: center;
-        color: #888;
-        font-size: 0.85rem;
-        margin-top: 30px;
-    }
-
-</style>
-""", unsafe_allow_html=True)
-
-
-# ============================================================
-# TÍTULO
-# ============================================================
-
+# Injetando metadados de PWA para forçar o nome correto no celular
 st.markdown(
-    '<div class="titulo">🐝 Rastreador de Abelhas</div>',
+    """
+    <head>
+        <meta name="apple-mobile-web-app-title" content="Rastreador de Abelhas">
+        <meta name="application-name" content="Rastreador de Abelhas">
+        <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
+            'name': 'Rastreador de Abelhas',
+            'short_name': 'Abelhas',
+            'start_url': '.',
+            'display': 'standalone',
+            'background_color': '#ffffff',
+            'theme_color': '#FF4B4B'
+        }">
+    </head>
+    """,
     unsafe_allow_html=True
 )
 
-st.markdown(
-    '<div class="subtitulo">'
-    'Estime a área de forrageamento da sua abelha sem ferrão.'
-    '</div>',
-    unsafe_allow_html=True
-)
+st.title("🌿 Rastreador de Forrageamento")
+st.markdown("Descubra o raio de alcance das abelhas nativas a partir da sua localização.")
 
-
-# ============================================================
-# ESPÉCIES
-# ============================================================
-
+# Dicionário completo de espécies e raios em ordem alfabética
 especies_abelhas = {
-    "Arapuá/Irapuã (Trigona spinipes)": 1000,
-    "Boca-de-Sapo (Partamona helleri)": 700,
-    "Borá (Tetragona clavipes)": 1500,
-    "Jataí-da-Terra (Paratrigona subnuda e Paratrigona lineata)": 500,
-    "Jataí-Acriana (Tetragonisca weyrauchi)": 500,
+    "Arapuá/Irapuã (Trigona spinipes)":1000,
+    "Boca-de-Sapo (Partamona helleri)":700,
+    "Borá (Tetragona clavipes)":1500,
+    "Jataí-da-Terra (Paratrigona subnuda e Paratrigona lineata)":500,
+    "Jataí-Acriana (Tetragonisca weyrauchi)":500,
     "Boiassu (Melipona interrupta)": 1500,
     "Bugia (Melipona mondury)": 1000,
     "Canudo (Scaptotrigona depilis)": 1500,
@@ -110,12 +50,12 @@ especies_abelhas = {
     "Mandaguari Amarela (Scaptotrigona xanthotricha)": 1500,
     "Mandaguari Preta (Scaptotrigona postica)": 1500,
     "Mano-Pé (Scaptotrigona bipunctata)": 1500,
-    "Marmelada (Frieseomelitta varia)": 500,
+    "Marmelada (Frieseomelitta varia)":500,
     "Mirim-droryana (Plebeia droryana)": 400,
-    "Mirim-emerina (Plebeia emerina)": 500,
+    "Mirim-emerina (Plebeia emerina)":500,
     "Mirim-preguiça (Frieseomelitta varia)": 500,
-    "Mirim-guaçu (Plebeia remota)": 700,
-    "Mirim-saitá (Plebeia moureana)": 500,
+    "Mirim-guaçu (Plebeia remota)":700,
+    "Mirim-saitá (Plebeia moureana)":500,
     "Mombucão (Cephalotrigona capitata)": 1000,
     "Limão (Lestrimelitta limao)": 1000,
     "Rabo-de-tatu (Nannotrigona punctata)": 500,
@@ -123,473 +63,154 @@ especies_abelhas = {
     "Tubuna (Scaptotrigona bipunctata)": 1500,
     "Uruçu-amarela (Melipona rufiventris)": 1500,
     "Uruçu-cinzenta (Melipona fasciculata)": 1500,
-    "Uruçu-caboclo (Melipona fuscopilosa)": 1700,
+    "Uruçu-caboclo (Melipona fuscopilosa)":1700,
     "Uruçu-do-chão (Melipona capixaba)": 1500,
-    "Uruçu-grandis / Uruçu-grande (Melipona grandis)": 2700,
+    "Uruçu-grandis / Uruçu-grande (Melipona grandis)":2700,
     "Uruçu-nordestina (Melipona scutellaris)": 1500,
     "Uruçu-True / Amarela (Melipona flavolineata)": 1500
 }
 
+# Inicializador do Geopy
+geolocator = Nominatim(user_agent="raio_abelhas_app")
 
-# ============================================================
-# ESCOLHA DA ABELHA
-# ============================================================
+# Seção principal bem visível
+st.subheader("1️⃣ Escolha a Espécie de Abelha")
+especie_escolhida = st.selectbox(
+    "Selecione na lista abaixo:", 
+    sorted(list(especies_abelhas.keys())),
+    label_visibility="collapsed"
+)
+raio_metros = especies_abelhas[especie_escolhida]
 
-especie = st.selectbox(
-    "Escolha a espécie de abelha:",
-    list(especies_abelhas.keys()),
-    index=list(especies_abelhas.keys()).index(
-        "Jataí (Tetragonisca angustula)"
-    )
+# Resumo e aviso colaborativo
+st.info(f"🎯 Raio de alcance estimado para a **{especie_escolhida}**: **{raio_metros} metros**.")
+
+st.markdown(
+    """
+    <div style="background-color: #f0f8ff; padding: 12px; border-radius: 5px; border-left: 5px solid #2196f3; margin-bottom: 20px;">
+        🐝 <b>Não encontrou alguma abelha?</b><br>
+        Envie um e-mail para <a href="mailto:paulo_eduardo_cb@hotmail.com">paulo_eduardo_cb@hotmail.com</a> 
+        com o nome da abelha para que possamos adicionar.
+    </div>
+    """, 
+    unsafe_allow_html=True
 )
 
-raio_metros = especies_abelhas[especie]
+st.markdown("---")
+st.subheader("2️⃣ Localização do Ninho")
 
-area_km2 = math.pi * (raio_metros / 1000) ** 2
-
-
-# ============================================================
-# POSIÇÃO DO NINHO
-# ============================================================
-
-if "lat" not in st.session_state:
+# Inicializa o session_state se não existir (Coordenadas padrão: Rio de Janeiro)
+if 'lat' not in st.session_state:
     st.session_state.lat = -22.9068
-
-if "lon" not in st.session_state:
+if 'lon' not in st.session_state:
     st.session_state.lon = -43.1729
+if 'last_gps_lat' not in st.session_state:
+    st.session_state.last_gps_lat = None
+if 'last_gps_lon' not in st.session_state:
+    st.session_state.last_gps_lon = None
 
+# Botão de GPS do dispositivo
+st.markdown("**Opção A: Usar GPS do celular/computador**")
+loc_gps = streamlit_geolocation()
 
-# ============================================================
-# BUSCA POR ENDEREÇO
-# ============================================================
+if loc_gps and loc_gps.get('latitude') and loc_gps.get('longitude'):
+    g_lat = loc_gps['latitude']
+    g_lon = loc_gps['longitude']
+    # Só atualiza se for um novo sinal de GPS real para evitar looping
+    if g_lat != st.session_state.last_gps_lat or g_lon != st.session_state.last_gps_lon:
+        st.session_state.last_gps_lat = g_lat
+        st.session_state.last_gps_lon = g_lon
+        st.session_state.lat = g_lat
+        st.session_state.lon = g_lon
+        st.success("📍 Localização obtida via GPS com sucesso!")
 
-st.markdown("### 📍 Localização do ninho")
+# Opção de busca por endereço
+endereco_busca = st.text_input("🔍 **Opção B: Ou digite o endereço / cidade:**")
 
-endereco = st.text_input(
-    "Pesquisar endereço",
-    placeholder="Digite uma rua, bairro, cidade..."
-)
+if endereco_busca:
+    try:
+        loc = geolocator.geocode(endereco_busca)
+        if loc:
+            st.session_state.lat = loc.latitude
+            st.session_state.lon = loc.longitude
+            st.success(f"Encontrado: {loc.address[:50]}...")
+        else:
+            st.error("Endereço não encontrado.")
+    except Exception:
+        st.error("Erro ao buscar endereço.")
 
-if st.button("🔎 Buscar endereço"):
+# Inputs manuais atrelados diretamente ao session_state
+lat_inicial = st.number_input("Latitude", value=float(st.session_state.lat), format="%.6f")
+lon_inicial = st.number_input("Longitude", value=float(st.session_state.lon), format="%.6f")
 
-    if endereco.strip():
+# Se o usuário alterou manualmente nos números, atualiza o estado
+if lat_inicial != st.session_state.lat or lon_inicial != st.session_state.lon:
+    st.session_state.lat = lat_inicial
+    st.session_state.lon = lon_inicial
 
-        try:
+st.markdown("---")
+st.markdown("### 🗺️ Mapa de Forrageamento")
+st.markdown("💡 *Toque no mapa para reposicionar o ninho.*")
 
-            geolocator = Nominatim(
-                user_agent="rastreador_abelhas"
-            )
+# Definindo o centro atual do mapa
+centro_mapa = [st.session_state.lat, st.session_state.lon]
 
-            local = geolocator.geocode(endereco)
+# Criando o mapa base
+m = folium.Map(location=centro_mapa, zoom_start=15, tiles="CartoDB positron")
 
-            if local:
-
-                st.session_state.lat = local.latitude
-                st.session_state.lon = local.longitude
-
-                st.success(
-                    f"Local encontrado: {local.address}"
-                )
-
-                st.rerun()
-
-            else:
-
-                st.warning(
-                    "Não encontrei esse endereço."
-                )
-
-        except Exception:
-
-            st.error(
-                "Não foi possível pesquisar o endereço."
-            )
-
-
-# ============================================================
-# COORDENADAS MANUAIS
-# ============================================================
-
-with st.expander("✏️ Informar coordenadas manualmente"):
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        nova_lat = st.number_input(
-            "Latitude",
-            value=float(st.session_state.lat),
-            format="%.6f"
-        )
-
-    with col2:
-
-        nova_lon = st.number_input(
-            "Longitude",
-            value=float(st.session_state.lon),
-            format="%.6f"
-        )
-
-    if st.button("📍 Usar estas coordenadas"):
-
-        st.session_state.lat = nova_lat
-        st.session_state.lon = nova_lon
-
-        st.rerun()
-
-
-# ============================================================
-# MAPA
-# ============================================================
-
-m = folium.Map(
-    location=[
-        st.session_state.lat,
-        st.session_state.lon
-    ],
-    zoom_start=15,
-    control_scale=True
-)
-
-
-# ============================================================
-# CAMADA SATÉLITE
-# ============================================================
-
+# Adicionar camada de Satélite (Esri World Imagery)
 folium.TileLayer(
-    tiles=(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/"
-        "World_Imagery/MapServer/tile/{z}/{y}/{x}"
-    ),
-    attr="Esri",
-    name="Satélite",
+    tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attr='Esri',
+    name='Visão de Satélite',
     overlay=False,
     control=True
 ).add_to(m)
 
-
-# ============================================================
-# CAMADA MAPA NORMAL
-# ============================================================
-
-folium.TileLayer(
-    tiles="CartoDB positron",
-    name="Mapa",
-    overlay=False,
-    control=True
+# Marcador do Ninho
+folium.Marker(
+    location=centro_mapa,
+    popup="Localização do Ninho",
+    icon=folium.Icon(color="green", icon="home", prefix="fa")
 ).add_to(m)
 
-
-# ============================================================
-# MARCADOR DO NINHO
-# ============================================================
-
-marcador_ninho = folium.Marker(
-    location=[
-        st.session_state.lat,
-        st.session_state.lon
-    ],
-    tooltip="Local do ninho",
-    popup=f"""
-    <b>🐝 Ninho</b><br>
-    {especie}<br>
-    Raio estimado: {raio_metros} m
-    """,
-    icon=folium.Icon(
-        color="green",
-        icon="home"
-    )
-)
-
-marcador_ninho.add_to(m)
-
-
-# ============================================================
-# CÍRCULO DE FORRAGEAMENTO
-# ============================================================
-
-circulo_ninho = folium.Circle(
-    location=[
-        st.session_state.lat,
-        st.session_state.lon
-    ],
+# Adicionando o círculo de forrageamento
+folium.Circle(
+    location=centro_mapa,
     radius=raio_metros,
-    color="#f1c40f",
+    color='yellow',
     fill=True,
-    fill_color="#f1c40f",
-    fill_opacity=0.20,
-    weight=2,
-    tooltip=f"Raio estimado: {raio_metros} metros"
-)
-
-circulo_ninho.add_to(m)
-
-
-# ============================================================
-# CONTROLE GPS DENTRO DO MAPA
-# ============================================================
-
-LocateControl(
-    auto_start=False,
-    flyTo=True,
-    keepCurrentZoomLevel=False,
-    drawCircle=False,
-    showPopup=False,
-    locateOptions={
-        "enableHighAccuracy": True,
-        "maximumAge": 0,
-        "timeout": 10000
-    }
+    fill_color='orange',
+    fill_opacity=0.3,
+    popup=f"{especie_escolhida} - Raio: {raio_metros}m"
 ).add_to(m)
 
+# Exibir o mapa no Streamlit com chave única
+output = st_folium(m, width=700, height=450, key="meu_mapa_abelhas")
 
-# ============================================================
-# CONTROLE DE CAMADAS
-# ============================================================
-
-folium.LayerControl().add_to(m)
-
-
-# ============================================================
-# JAVASCRIPT DO GPS
-# ============================================================
-
-map_name = m.get_name()
-marker_name = marcador_ninho.get_name()
-circle_name = circulo_ninho.get_name()
-
-gps_script = f"""
-<script>
-
-(function() {{
-
-    var mapa = {map_name};
-    var marcador = {marker_name};
-    var circulo = {circle_name};
-
-    if (!mapa) {{
-        return;
-    }}
-
-    /*
-     * O evento "locationfound" é disparado pelo LocateControl
-     * quando o navegador encontra a posição do dispositivo.
-     *
-     * IMPORTANTE:
-     * Não usamos o "center" do mapa.
-     *
-     * Assim, arrastar o mapa não altera o ninho.
-     */
-
-    mapa.off('locationfound');
-
-    mapa.on('locationfound', function(e) {{
-
-        var latitude = e.latlng.lat;
-        var longitude = e.latlng.lng;
-
-        /*
-         * Move o marcador do ninho.
-         */
-
-        if (marcador) {{
-            marcador.setLatLng([
-                latitude,
-                longitude
-            ]);
-        }}
-
-        /*
-         * Move o círculo amarelo.
-         */
-
-        if (circulo) {{
-            circulo.setLatLng([
-                latitude,
-                longitude
-            ]);
-        }}
-
-        /*
-         * Mantém o mapa centralizado na localização encontrada.
-         */
-
-        mapa.setView(
-            [latitude, longitude],
-            mapa.getZoom()
-        );
-
-    }});
-
-}})();
-
-</script>
-"""
-
-m.get_root().html.add_child(
-    Element(gps_script)
-)
-
-
-# ============================================================
-# EXIBIÇÃO DO MAPA
-# ============================================================
-
-map_data = st_folium(
-    m,
-    width=700,
-    height=580,
-    key="meu_mapa_abelhas",
-    returned_objects=["last_clicked"]
-)
-
-
-# ============================================================
-# CLIQUE NO MAPA
-# ============================================================
-
-if map_data and map_data.get("last_clicked"):
-
-    clicado = map_data["last_clicked"]
-
-    nova_lat = float(clicado["lat"])
-    nova_lon = float(clicado["lng"])
-
-    diferenca_lat = abs(
-        nova_lat - st.session_state.lat
-    )
-
-    diferenca_lon = abs(
-        nova_lon - st.session_state.lon
-    )
-
-    if diferenca_lat > 0.000001 or diferenca_lon > 0.000001:
-
-        st.session_state.lat = nova_lat
-        st.session_state.lon = nova_lon
-
+# Se o usuário clicar no mapa, atualizamos as coordenadas no session_state e recarregamos imediatamente
+if output and output.get("last_clicked"):
+    clicked_lat = output["last_clicked"]["lat"]
+    clicked_lon = output["last_clicked"]["lng"]
+    if clicked_lat != st.session_state.lat or clicked_lon != st.session_state.lon:
+        st.session_state.lat = clicked_lat
+        st.session_state.lon = clicked_lon
         st.rerun()
 
-
-# ============================================================
-# INFORMAÇÕES
-# ============================================================
-
-st.markdown("### 🐝 Informações do forrageamento")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-
-    st.metric(
-        "Espécie",
-        especie.split(" (")[0]
-    )
-
-with col2:
-
-    st.metric(
-        "Raio estimado",
-        f"{raio_metros} m"
-    )
-
-with col3:
-
-    st.metric(
-        "Área aproximada",
-        f"{area_km2:.2f} km²"
-    )
-
-
-st.info(
-    """
-    O círculo representa uma estimativa geométrica do raio de
-    forrageamento da espécie selecionada.
-
-    Ele não significa que a abelha necessariamente utilizará
-    todos os pontos dentro do círculo. A disponibilidade de
-    flores, água, obstáculos, clima, competição e outros fatores
-    podem influenciar o deslocamento real das abelhas.
-    """
-)
-
-
-# ============================================================
-# COMO USAR
-# ============================================================
-
-st.success(
-    """
-    **Como usar:**
-
-    📍 Use o botão GPS dentro do mapa para localizar o dispositivo.
-
-    🖱️ Clique diretamente no mapa para escolher manualmente
-    o local do ninho.
-
-    🔎 Pesquise um endereço para posicionar o ninho.
-
-    ✏️ Ou informe latitude e longitude manualmente.
-
-    🗺️ Arraste o mapa livremente para explorar a região.
-    O ninho não será alterado ao movimentar o mapa.
-    """
-)
-
-
-# ============================================================
-# APOIE O PROJETO
-# ============================================================
-
+# --- SEÇÃO DE APOIO E DOAÇÃO VIA PIX (MOVIDA PARA LOGO ABAIXO DO MAPA) ---
+st.markdown("---")
+st.markdown("### ☕ Apoie este Projeto")
 st.markdown(
-    """
-    <div class="pix-card">
-
-    <h3>💚 Apoie o projeto</h3>
-
-    Se esta ferramenta for útil para você e quiser ajudar
-    na continuidade do projeto:
-
-    <br><br>
-
-    <b>Favorecido:</b><br>
-    Paulo Eduardo Castelo Branco Geraldo
-
-    <br><br>
-
-    <b>Banco:</b><br>
-    Nubank
-
-    <br><br>
-
-    <b>Chave Pix:</b><br>
-    02450e96-4a41-4b62-8275-0b741c23a42b
-
-    </div>
-    """,
-    unsafe_allow_html=True
+    "Este aplicativo é **100% gratuito** e desenvolvido para apoiar a meliponicultura, "
+    "a pesquisa e o manejo consciente das nossas abelhas nativas. "
+    "Se a ferramenta foi útil para você e quiser colaborar com a manutenção do projeto, "
+    "qualquer contribuição via Pix é muito bem-vinda!"
 )
 
+st.markdown("**Dados para Doação via Pix:**")
+st.write("👤 **Favorecido:** Paulo Eduardo Castelo Branco Geraldo")
+st.write("🏦 **Banco:** Nubank")
+st.markdown("🔑 **Chave Pix (Toque no campo abaixo para copiar):**")
+st.code("02450e96-4a41-4b62-8275-0b741c23a42b", language="text")
 
-# ============================================================
-# AGRADECIMENTO
-# ============================================================
-
-st.success(
-    "Maria Alice R. M. Castelo Branco e Paulo Eduardo Castelo Branco"
-)
-
-
-# ============================================================
-# RODAPÉ
-# ============================================================
-
-st.markdown(
-    """
-    <div class="rodape">
-    Ferramenta experimental desenvolvida para auxiliar
-    meliponicultores na observação da área de forrageamento.
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+st.success("❤️ **Muito obrigado por apoiar a preservação das abelhas nativas e a meliponicultura! Atenciosamente: Maria Alice R. M. Castelo Branco e Paulo Eduardo Castelo Branco** 🐝")
