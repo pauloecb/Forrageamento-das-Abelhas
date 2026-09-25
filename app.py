@@ -83,6 +83,32 @@ st.markdown(
         margin-top: 0.15rem;
     }
 
+    .donation-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 1.2rem;
+        margin-top: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .donation-title {
+        font-size: 1.05rem;
+        font-weight: 750;
+        color: #202124;
+        margin-bottom: 0.7rem;
+    }
+
+    .donation-pix {
+        background: #f3f4f6;
+        border-radius: 8px;
+        padding: 0.7rem;
+        font-family: monospace;
+        font-size: 0.85rem;
+        word-break: break-all;
+        margin-top: 0.4rem;
+    }
+
     .footer {
         text-align: center;
         color: #9ca3af;
@@ -90,13 +116,11 @@ st.markdown(
         margin-top: 2.5rem;
     }
 
-    /* Botões */
     .stButton > button {
         border-radius: 10px;
         font-weight: 600;
     }
 
-    /* Inputs */
     div[data-baseweb="input"] {
         border-radius: 10px;
     }
@@ -105,7 +129,6 @@ st.markdown(
         border-radius: 10px;
     }
 
-    /* GPS / controles do Leaflet */
     .leaflet-control-locate {
         margin-top: 10px !important;
     }
@@ -189,10 +212,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+lista_especies = list(especies_abelhas.keys())
+
 especie_selecionada = st.selectbox(
     "Espécie da abelha",
-    list(especies_abelhas.keys()),
-    index=list(especies_abelhas.keys()).index(
+    lista_especies,
+    index=lista_especies.index(
         "Jataí (Tetragonisca angustula)"
     )
 )
@@ -201,7 +226,7 @@ raio_metros = especies_abelhas[especie_selecionada]
 
 
 # ============================================================
-# INFORMAÇÕES DA ESPÉCIE
+# NOME DA ESPÉCIE
 # ============================================================
 
 partes = especie_selecionada.split("(", 1)
@@ -292,7 +317,7 @@ if "lon" not in st.session_state:
 
 
 # ============================================================
-# LOCALIZAÇÃO DO NINHO
+# LOCALIZAÇÃO
 # ============================================================
 
 st.markdown(
@@ -301,8 +326,8 @@ st.markdown(
 )
 
 st.caption(
-    "Você pode pesquisar um endereço, usar o GPS dentro do mapa "
-    "ou simplesmente clicar diretamente no local do ninho."
+    "Pesquise um endereço, use o GPS dentro do mapa ou clique "
+    "diretamente no local do ninho."
 )
 
 
@@ -311,6 +336,7 @@ st.caption(
 # ============================================================
 
 with st.form("form_endereco"):
+
     endereco = st.text_input(
         "Pesquisar endereço",
         placeholder="Digite rua, bairro, cidade ou ponto de referência"
@@ -321,9 +347,11 @@ with st.form("form_endereco"):
         use_container_width=True
     )
 
+
 if pesquisar and endereco:
 
     try:
+
         geolocator = Nominatim(
             user_agent="rastreador_abelhas"
         )
@@ -350,7 +378,7 @@ if pesquisar and endereco:
                 "Não foi possível localizar esse endereço."
             )
 
-    except Exception as e:
+    except Exception:
 
         st.error(
             "Não foi possível realizar a busca do endereço."
@@ -366,6 +394,7 @@ with st.expander("⚙️ Inserir coordenadas manualmente"):
     col1, col2 = st.columns(2)
 
     with col1:
+
         nova_lat = st.number_input(
             "Latitude",
             value=float(st.session_state.lat),
@@ -373,6 +402,7 @@ with st.expander("⚙️ Inserir coordenadas manualmente"):
         )
 
     with col2:
+
         nova_lon = st.number_input(
             "Longitude",
             value=float(st.session_state.lon),
@@ -412,11 +442,14 @@ m = folium.Map(
 
 
 # ============================================================
-# CAMADA DE SATÉLITE — PADRÃO
+# SATÉLITE — CAMADA PADRÃO
 # ============================================================
 
 folium.TileLayer(
-    tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    tiles=(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/"
+        "World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    ),
     attr="Esri",
     name="🛰️ Satélite",
     overlay=False,
@@ -426,7 +459,7 @@ folium.TileLayer(
 
 
 # ============================================================
-# CAMADA DE MAPA
+# MAPA NORMAL
 # ============================================================
 
 folium.TileLayer(
@@ -448,11 +481,11 @@ folium.Marker(
         st.session_state.lon
     ],
     tooltip="🐝 Local do ninho",
-    popup=f"""
-    <b>🐝 Ninho</b><br>
-    {nome_popular}<br>
-    Raio estimado: {raio_metros} metros
-    """,
+    popup=(
+        f"<b>🐝 Ninho</b><br>"
+        f"{nome_popular}<br>"
+        f"Raio estimado: {raio_metros} metros"
+    ),
     icon=folium.Icon(
         color="orange",
         icon="home"
@@ -498,7 +531,7 @@ LocateControl(
 
 
 # ============================================================
-# PONTE ENTRE GPS E STREAMLIT
+# INTEGRAÇÃO GPS → STREAMLIT
 # ============================================================
 
 map_name = m.get_name()
@@ -559,7 +592,7 @@ folium.LayerControl(
 
 
 # ============================================================
-# EXIBIÇÃO DO MAPA
+# MOSTRAR MAPA
 # ============================================================
 
 map_data = st_folium(
@@ -625,7 +658,7 @@ circular.
 
 
 # ============================================================
-# AJUDE A MELHORAR
+# APOIE O PROJETO
 # ============================================================
 
 st.markdown(
@@ -633,14 +666,61 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+st.markdown(
+    """
+    <div class="donation-card">
+
+    <div class="donation-title">
+    ❤️ Apoie o desenvolvimento
+    </div>
+
+    Este projeto está sendo desenvolvido para ajudar
+    meliponicultores a conhecer melhor o potencial de
+    forrageamento das abelhas nativas.
+
+    Se você quiser contribuir com o desenvolvimento,
+    manutenção e expansão da ferramenta, qualquer valor
+    será muito bem-vindo.
+
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+
+st.markdown("### 💚 Contribuição via Pix")
+
+st.write(
+    "**Favorecido:** Paulo Eduardo Castelo Branco Geraldo"
+)
+
+st.write(
+    "**Banco:** Nubank"
+)
+
+st.write("**Chave Pix:**")
+
+st.code(
+    "02450e96-4a41-4b62-8275-0b741c23a42b",
+    language=None
+)
+
+st.caption(
+    "A contribuição é voluntária e ajuda a manter o projeto em desenvolvimento."
+)
+
+
+# ============================================================
+# AGRADECIMENTO
+# ============================================================
+
 st.success(
     """
-Este projeto foi criado para auxiliar meliponicultores a visualizar
-o potencial de forrageamento das abelhas nativas e entender melhor
-a paisagem ao redor dos ninhos.
+Muito obrigado a todos que utilizarem a ferramenta,
+enviarem sugestões, relatarem erros ou contribuírem
+de alguma forma com o projeto. 🐝🌿
 
-Quanto mais espécies, nomes populares e informações forem adicionados,
-mais útil a ferramenta poderá se tornar.
+**Maria Alice R. M. Castelo Branco e Paulo Eduardo Castelo Branco**
 """
 )
 
