@@ -1,7 +1,7 @@
 import streamlit as st
 import folium
-from folium.plugins import LocateControl
 from streamlit_folium import st_folium
+from streamlit_geolocation import streamlit_geolocation
 from geopy.geocoders import Nominatim
 import math
 
@@ -46,14 +46,6 @@ st.markdown("""
         margin-bottom: 1.5rem;
     }
 
-    .card {
-        background: white;
-        padding: 18px;
-        border-radius: 12px;
-        border: 1px solid #ddd;
-        margin-bottom: 15px;
-    }
-
     .pix-card {
         background: white;
         padding: 18px;
@@ -83,7 +75,9 @@ st.markdown(
 )
 
 st.markdown(
-    '<div class="subtitulo">Estime a área de forrageamento da sua abelha sem ferrão.</div>',
+    '<div class="subtitulo">'
+    'Estime a área de forrageamento da sua abelha sem ferrão.'
+    '</div>',
     unsafe_allow_html=True
 )
 
@@ -151,7 +145,7 @@ area_km2 = math.pi * (raio_metros / 1000) ** 2
 
 
 # ============================================================
-# POSIÇÃO INICIAL
+# POSIÇÃO DO NINHO
 # ============================================================
 
 if "lat" not in st.session_state:
@@ -162,10 +156,42 @@ if "lon" not in st.session_state:
 
 
 # ============================================================
-# BUSCA POR ENDEREÇO
+# GPS
 # ============================================================
 
 st.markdown("### 📍 Localização do ninho")
+
+st.caption(
+    "Use o botão abaixo para usar a localização atual do dispositivo."
+)
+
+localizacao = streamlit_geolocation()
+
+if (
+    isinstance(localizacao, dict)
+    and localizacao.get("latitude") is not None
+    and localizacao.get("longitude") is not None
+):
+
+    gps_lat = float(localizacao["latitude"])
+    gps_lon = float(localizacao["longitude"])
+
+    # Evita ficar atualizando o ninho continuamente
+    # se o componente retornar a mesma posição.
+    diferenca_lat = abs(gps_lat - st.session_state.lat)
+    diferenca_lon = abs(gps_lon - st.session_state.lon)
+
+    if diferenca_lat > 0.000001 or diferenca_lon > 0.000001:
+
+        st.session_state.lat = gps_lat
+        st.session_state.lon = gps_lon
+
+        st.rerun()
+
+
+# ============================================================
+# BUSCA POR ENDEREÇO
+# ============================================================
 
 endereco = st.text_input(
     "Pesquisar endereço",
@@ -201,7 +227,7 @@ if st.button("🔎 Buscar endereço"):
                     "Não encontrei esse endereço."
                 )
 
-        except Exception as e:
+        except Exception:
 
             st.error(
                 "Não foi possível pesquisar o endereço."
@@ -255,11 +281,14 @@ m = folium.Map(
 
 
 # ============================================================
-# CAMADA DE SATÉLITE
+# SATÉLITE
 # ============================================================
 
 folium.TileLayer(
-    tiles="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    tiles=(
+        "https://server.arcgisonline.com/ArcGIS/rest/services/"
+        "World_Imagery/MapServer/tile/{z}/{y}/{x}"
+    ),
     attr="Esri",
     name="Satélite",
     overlay=False,
@@ -268,7 +297,7 @@ folium.TileLayer(
 
 
 # ============================================================
-# CAMADA NORMAL
+# MAPA NORMAL
 # ============================================================
 
 folium.TileLayer(
@@ -302,7 +331,7 @@ folium.Marker(
 
 
 # ============================================================
-# RAIO DE FORRAGEAMENTO
+# CÍRCULO DE FORRAGEAMENTO
 # ============================================================
 
 folium.Circle(
@@ -321,24 +350,6 @@ folium.Circle(
 
 
 # ============================================================
-# GPS
-# ============================================================
-
-LocateControl(
-    auto_start=False,
-    flyTo=True,
-    keepCurrentZoomLevel=False,
-    drawCircle=False,
-    showPopup=False,
-    locateOptions={
-        "enableHighAccuracy": True,
-        "maximumAge": 0,
-        "timeout": 10000
-    }
-).add_to(m)
-
-
-# ============================================================
 # CONTROLE DE CAMADAS
 # ============================================================
 
@@ -346,7 +357,7 @@ folium.LayerControl().add_to(m)
 
 
 # ============================================================
-# EXIBIÇÃO DO MAPA
+# MAPA
 # ============================================================
 
 map_data = st_folium(
@@ -362,22 +373,24 @@ map_data = st_folium(
 # CLIQUE NO MAPA
 # ============================================================
 
-# IMPORTANTE:
-# O centro do mapa NÃO é utilizado aqui.
+# SOMENTE O CLIQUE altera a posição do ninho.
 #
-# Portanto:
-# - arrastar o mapa NÃO muda o ninho
-# - aproximar/afastar o zoom NÃO muda o ninho
-# - movimentar a câmera NÃO muda o ninho
+# Arrastar o mapa:
+#    NÃO altera o ninho.
 #
-# Somente um clique explícito no mapa muda a posição.
+# Zoom:
+#    NÃO altera o ninho.
+#
+# GPS:
+#    É tratado separadamente acima.
+
 
 if map_data and map_data.get("last_clicked"):
 
     clicado = map_data["last_clicked"]
 
-    nova_lat = clicado["lat"]
-    nova_lon = clicado["lng"]
+    nova_lat = float(clicado["lat"])
+    nova_lon = float(clicado["lng"])
 
     diferenca_lat = abs(
         nova_lat - st.session_state.lat
@@ -446,16 +459,18 @@ st.success(
     """
     **Como usar:**
 
-    📍 Use o botão de localização do mapa para visualizar sua posição.
+    📍 Use o botão de localização para posicionar o ninho
+    na localização atual do dispositivo.
 
-    🖱️ Clique diretamente no mapa para escolher o local do ninho.
+    🖱️ Clique diretamente no mapa para escolher manualmente
+    o local do ninho.
 
     🔎 Pesquise um endereço para posicionar o ninho.
 
     ✏️ Ou informe latitude e longitude manualmente.
 
-    🗺️ Depois, arraste o mapa livremente para explorar a região.
-    O ninho continuará exatamente onde foi definido.
+    🗺️ Arraste o mapa livremente para explorar a região.
+    O ninho não será alterado ao movimentar o mapa.
     """
 )
 
